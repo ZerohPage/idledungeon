@@ -16,6 +16,9 @@ public class GameManager
     private GameState _currentState;
     private Dungeon? _dungeon;
     private Player? _player;
+    private List<Enemy> _enemies;
+    private Random _random;
+    private Combat _combat;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
@@ -24,6 +27,9 @@ public class GameManager
     public GameManager()
     {
         _currentState = GameState.Menu;
+        _enemies = new List<Enemy>();
+        _random = new Random();
+        _combat = new Combat();
     }
     
     public void Initialize()
@@ -39,8 +45,10 @@ public class GameManager
         
         // Create player and set position to dungeon entrance
         _player = new Player(Vector2.Zero);
-
         _player.SetDungeon(_dungeon);
+        
+        // Spawn enemies at random walkable locations
+        SpawnEnemies();
         
         _currentState = GameState.Playing;
     }
@@ -100,6 +108,26 @@ public class GameManager
             _currentState = GameState.Paused;
         }
         
+        // Update combat system
+        _combat.Update(Raylib.GetFrameTime());
+        
+        // Check combat results
+        if (_combat.State == CombatState.PlayerLoses)
+        {
+            _currentState = GameState.GameOver;
+            _combat.EndCombat();
+            return;
+        }
+        else if (_combat.State == CombatState.PlayerWins)
+        {
+            // Remove defeated enemy
+            if (_combat.CurrentEnemy != null)
+            {
+                _enemies.Remove(_combat.CurrentEnemy);
+            }
+            _combat.EndCombat();
+        }
+        
         // Update player
         if (_player != null)
         {
@@ -116,6 +144,18 @@ public class GameManager
             {
                 _currentState = GameState.GameOver;
             }
+        }
+        
+        // Update enemies
+        foreach (var enemy in _enemies)
+        {
+            enemy.Update(Raylib.GetFrameTime());
+        }
+        
+        // Check for combat encounters (only if not already in combat)
+        if (!_combat.IsInCombat && _player != null)
+        {
+            CheckForCombatEncounters();
         }
     }
     
@@ -174,8 +214,17 @@ public class GameManager
         // Draw the dungeon if it exists
         _dungeon?.Draw();
         
+        // Draw enemies
+        foreach (var enemy in _enemies)
+        {
+            enemy.Draw();
+        }
+        
         // Draw the player if it exists
         _player?.Draw();
+        
+        // Draw combat UI if in combat
+        _combat.Draw();
         
         // Draw UI
         Raylib.DrawText("Dungeon Game", 10, 10, 20, Color.White);
@@ -251,5 +300,54 @@ public class GameManager
     public void EndGame()
     {
         _currentState = GameState.GameOver;
+    }
+    
+    private void SpawnEnemies()
+    {
+        _enemies.Clear();
+        
+        if (_dungeon == null) return;
+        
+        // Get all walkable positions
+        var walkablePositions = _dungeon.GetWalkablePositions();
+        
+        // Remove player starting position from possible spawn locations
+        var playerPos = _dungeon.EntrancePosition;
+        walkablePositions.RemoveAll(pos => Vector2.Distance(pos, playerPos) < _dungeon.TileSize * 2);
+        
+        // Spawn 10 skeleton enemies at random locations
+        for (int i = 0; i < 10 && walkablePositions.Count > 0; i++)
+        {
+            int randomIndex = _random.Next(walkablePositions.Count);
+            Vector2 spawnPosition = walkablePositions[randomIndex];
+            
+            // Create skeleton enemy
+            var skeleton = new Skeleton(spawnPosition);
+            _enemies.Add(skeleton);
+            
+            // Remove this position so we don't spawn multiple enemies in the same spot
+            walkablePositions.RemoveAt(randomIndex);
+        }
+    }
+    
+    private void CheckForCombatEncounters()
+    {
+        if (_player == null || _dungeon == null) return;
+        
+        // Check if player is close to any enemy
+        foreach (var enemy in _enemies)
+        {
+            if (!enemy.IsAlive) continue;
+            
+            float distance = Vector2.Distance(_player.Position, enemy.Position);
+            float combatRange = (_player.Radius + enemy.Radius) * 1.5f; // Combat triggers when close
+            
+            if (distance <= combatRange)
+            {
+                // Start combat with this enemy
+                _combat.StartCombat(_player, enemy);
+                break; // Only fight one enemy at a time
+            }
+        }
     }
 }
