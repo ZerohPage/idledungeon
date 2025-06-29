@@ -19,6 +19,7 @@ public class Combat
     private float _combatTimer;
     private float _combatCooldown = 1.0f; // Time between attacks
     private Random _random;
+    private FloatingNumberManager? _floatingNumbers;
     
     public CombatState State => _state;
     public Enemy? CurrentEnemy => _currentEnemy;
@@ -29,6 +30,11 @@ public class Combat
         _state = CombatState.NotInCombat;
         _combatTimer = 0f;
         _random = new Random();
+    }
+    
+    public void SetFloatingNumberManager(FloatingNumberManager floatingNumbers)
+    {
+        _floatingNumbers = floatingNumbers;
     }
     
     public void StartCombat(Player player, Enemy enemy)
@@ -76,9 +82,25 @@ public class Combat
     {
         if (_player == null || _currentEnemy == null) return;
         
-        // Simple turn-based combat - both attack each other simultaneously
-        _player.TakeDamage(_currentEnemy.AttackDamage);
-        _currentEnemy.TakeDamage(CalculatePlayerDamage());
+        // Calculate damage
+        int playerDamage = CalculatePlayerDamage();
+        int enemyDamage = _currentEnemy.AttackDamage;
+        
+        // Apply damage
+        _player.TakeDamage(enemyDamage);
+        _currentEnemy.TakeDamage(playerDamage);
+        
+        // Show floating damage numbers
+        if (_floatingNumbers != null)
+        {
+            // Show damage to player (above player)
+            Vector2 playerDamagePos = new Vector2(_player.Position.X, _player.Position.Y - 20);
+            _floatingNumbers.AddDamageNumber(playerDamagePos, enemyDamage);
+            
+            // Show damage to enemy (above enemy)
+            Vector2 enemyDamagePos = new Vector2(_currentEnemy.Position.X, _currentEnemy.Position.Y - 20);
+            _floatingNumbers.AddDamageNumber(enemyDamagePos, playerDamage);
+        }
     }
     
     private int CalculatePlayerDamage()

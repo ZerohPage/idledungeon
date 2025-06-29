@@ -19,10 +19,12 @@ public class GameManager
     private List<Enemy> _enemies;
     private Random _random;
     private Combat _combat;
+    private FloatingNumberManager _floatingNumbers;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
     public Player? CurrentPlayer => _player;
+    public FloatingNumberManager FloatingNumbers => _floatingNumbers;
     
     public GameManager()
     {
@@ -30,6 +32,10 @@ public class GameManager
         _enemies = new List<Enemy>();
         _random = new Random();
         _combat = new Combat();
+        _floatingNumbers = new FloatingNumberManager();
+        
+        // Connect floating numbers to combat system
+        _combat.SetFloatingNumberManager(_floatingNumbers);
     }
     
     public void Initialize()
@@ -110,6 +116,9 @@ public class GameManager
         
         // Update combat system
         _combat.Update(Raylib.GetFrameTime());
+        
+        // Update floating numbers
+        _floatingNumbers.Update(Raylib.GetFrameTime());
         
         // Check combat results
         if (_combat.State == CombatState.PlayerLoses)
@@ -225,6 +234,9 @@ public class GameManager
         
         // Draw combat UI if in combat
         _combat.Draw();
+        
+        // Draw floating damage numbers
+        _floatingNumbers.Draw();
         
         // Draw UI
         Raylib.DrawText("Dungeon Game", 10, 10, 20, Color.White);
