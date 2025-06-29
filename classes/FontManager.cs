@@ -82,12 +82,37 @@ public static class FontManager
             // Add slight spacing between characters for better readability
             float spacing = fontSize * 0.05f; // 5% of font size
             
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y), fontSize, spacing, color);
+            // Draw black border by drawing text offset in 8 directions
+            var position = new System.Numerics.Vector2(x, y);
+            
+            // Draw border (black text offset by 1 pixel in all directions)
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y - 1), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y - 1), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y - 1), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y + 1), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y + 1), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y + 1), fontSize, spacing, Color.Black);
+            
+            // Draw main text (white on top)
+            Raylib.DrawTextEx(font, text, position, fontSize, spacing, Color.White);
         }
         else
         {
-            // Fall back to default Raylib text drawing
-            Raylib.DrawText(text, x, y, fontSize, color);
+            // Fall back to default Raylib text drawing with border
+            // Draw border (black text offset by 1 pixel in all directions)
+            Raylib.DrawText(text, x - 1, y - 1, fontSize, Color.Black);
+            Raylib.DrawText(text, x, y - 1, fontSize, Color.Black);
+            Raylib.DrawText(text, x + 1, y - 1, fontSize, Color.Black);
+            Raylib.DrawText(text, x - 1, y, fontSize, Color.Black);
+            Raylib.DrawText(text, x + 1, y, fontSize, Color.Black);
+            Raylib.DrawText(text, x - 1, y + 1, fontSize, Color.Black);
+            Raylib.DrawText(text, x, y + 1, fontSize, Color.Black);
+            Raylib.DrawText(text, x + 1, y + 1, fontSize, Color.Black);
+            
+            // Draw main text (white on top)
+            Raylib.DrawText(text, x, y, fontSize, Color.White);
         }
     }
     
