@@ -57,9 +57,9 @@ public class FloatingNumber
         float alpha = _lifetime / _maxLifetime;
         Color drawColor = new Color(_color.R, _color.G, _color.B, (int)(255 * alpha));
         
-        // Draw text with outline for better visibility
-        Raylib.DrawText(_text, (int)_position.X + 1, (int)_position.Y + 1, _fontSize, Color.Black);
-        Raylib.DrawText(_text, (int)_position.X, (int)_position.Y, _fontSize, drawColor);
+        // Draw text with outline for better visibility using FontManager
+        FontManager.DrawText(_text, (int)_position.X + 1, (int)_position.Y + 1, _fontSize, Color.Black);
+        FontManager.DrawText(_text, (int)_position.X, (int)_position.Y, _fontSize, drawColor);
     }
 }
 

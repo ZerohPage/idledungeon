@@ -2,23 +2,18 @@ using Raylib_cs;
 
 namespace RaylibGame.Classes;
 
-public class FontManager
+public static class FontManager
 {
-    private Font _defaultFont;
-    private Font _titleFont;
-    private Font _uiFont;
-    private bool _fontsLoaded;
+    private static Font _defaultFont;
+    private static Font _titleFont;
+    private static Font _uiFont;
+    private static bool _fontsLoaded;
     
-    public Font DefaultFont => _fontsLoaded ? _defaultFont : Raylib.GetFontDefault();
-    public Font TitleFont => _fontsLoaded ? _titleFont : Raylib.GetFontDefault();
-    public Font UIFont => _fontsLoaded ? _uiFont : Raylib.GetFontDefault();
+    public static Font DefaultFont => _fontsLoaded ? _defaultFont : Raylib.GetFontDefault();
+    public static Font TitleFont => _fontsLoaded ? _titleFont : Raylib.GetFontDefault();
+    public static Font UIFont => _fontsLoaded ? _uiFont : Raylib.GetFontDefault();
     
-    public FontManager()
-    {
-        _fontsLoaded = false;
-    }
-    
-    public void LoadFonts()
+    public static void LoadFonts()
     {
         try
         {
@@ -37,7 +32,7 @@ public class FontManager
         }
     }
     
-    private Font LoadFontSafe(string fileName, int fontSize)
+    private static Font LoadFontSafe(string fileName, int fontSize)
     {
         // Check if file exists before trying to load
         if (File.Exists(fileName))
@@ -56,7 +51,7 @@ public class FontManager
         return Raylib.GetFontDefault();
     }
     
-    public void UnloadFonts()
+    public static void UnloadFonts()
     {
         if (_fontsLoaded)
         {
@@ -70,7 +65,7 @@ public class FontManager
     }
     
     // Helper methods for drawing text with managed fonts
-    public void DrawText(string text, int x, int y, int fontSize, Color color, FontType fontType = FontType.Default)
+    public static void DrawText(string text, int x, int y, int fontSize, Color color, FontType fontType = FontType.Default)
     {
         Font font = fontType switch
         {
@@ -96,7 +91,7 @@ public class FontManager
         }
     }
     
-    public int MeasureText(string text, int fontSize, FontType fontType = FontType.Default)
+    public static int MeasureText(string text, int fontSize, FontType fontType = FontType.Default)
     {
         Font font = fontType switch
         {
@@ -119,7 +114,7 @@ public class FontManager
         }
     }
     
-    public System.Numerics.Vector2 MeasureTextEx(string text, int fontSize, FontType fontType = FontType.Default)
+    public static System.Numerics.Vector2 MeasureTextEx(string text, int fontSize, FontType fontType = FontType.Default)
     {
         Font font = fontType switch
         {
