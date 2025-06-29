@@ -5,7 +5,7 @@ namespace RaylibGame.Classes;
 
 public enum GameState
 {
-    Menu,
+    Intro,
     Playing,
     Paused,
     GameOver
@@ -20,6 +20,8 @@ public class GameManager
     private Random _random;
     private Combat _combat;
     private FloatingNumberManager _floatingNumbers;
+    private IntroScreen _introScreen;
+    private GameOverScreen _gameOverScreen;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
@@ -28,11 +30,13 @@ public class GameManager
     
     public GameManager()
     {
-        _currentState = GameState.Menu;
+        _currentState = GameState.Intro;
         _enemies = new List<Enemy>();
         _random = new Random();
         _combat = new Combat();
         _floatingNumbers = new FloatingNumberManager();
+        _introScreen = new IntroScreen(this);
+        _gameOverScreen = new GameOverScreen(this);
         
         // Connect floating numbers to combat system
         _combat.SetFloatingNumberManager(_floatingNumbers);
@@ -43,8 +47,7 @@ public class GameManager
         // Load fonts first
         FontManager.LoadFonts();
         
-        // Initialize game systems
-        StartNewGame();
+        // Don't start the game automatically - let IntroScreen handle the flow
     }
     
     public void StartNewGame()
@@ -66,8 +69,8 @@ public class GameManager
     {
         switch (_currentState)
         {
-            case GameState.Menu:
-                UpdateMenu();
+            case GameState.Intro:
+                _introScreen.Update(Raylib.GetFrameTime());
                 break;
             case GameState.Playing:
                 UpdateGameplay();
@@ -76,7 +79,7 @@ public class GameManager
                 UpdatePaused();
                 break;
             case GameState.GameOver:
-                UpdateGameOver();
+                _gameOverScreen.Update(Raylib.GetFrameTime());
                 break;
         }
     }
@@ -85,8 +88,8 @@ public class GameManager
     {
         switch (_currentState)
         {
-            case GameState.Menu:
-                DrawMenu();
+            case GameState.Intro:
+                _introScreen.Draw();
                 break;
             case GameState.Playing:
                 DrawGameplay();
@@ -95,7 +98,7 @@ public class GameManager
                 DrawPaused();
                 break;
             case GameState.GameOver:
-                DrawGameOver();
+                _gameOverScreen.Draw();
                 break;
         }
     }
@@ -170,8 +173,7 @@ public class GameManager
             CheckForCombatEncounters();
         }
     }
-    
-    private void UpdatePaused()
+      private void UpdatePaused()
     {
         // Check for unpause
         if (Raylib.IsKeyPressed(KeyboardKey.Escape))
@@ -179,26 +181,13 @@ public class GameManager
             _currentState = GameState.Playing;
         }
         
-        // Check for return to menu
+        // Check for return to intro
         if (Raylib.IsKeyPressed(KeyboardKey.Q))
         {
-            _currentState = GameState.Menu;
+            _currentState = GameState.Intro;
         }
     }
-    
-    private void UpdateGameOver()
-    {
-        // Check for restart or return to menu
-        if (Raylib.IsKeyPressed(KeyboardKey.R))
-        {
-            StartNewGame();
-        }
-        else if (Raylib.IsKeyPressed(KeyboardKey.Q))
-        {
-            _currentState = GameState.Menu;
-        }
-    }
-    
+
     private void DrawMenu()
     {
         Raylib.ClearBackground(Color.Black);
@@ -278,35 +267,10 @@ public class GameManager
         int instructionFontSize = 16;
         int instruction1Width = FontManager.MeasureText(instruction1, instructionFontSize, FontType.UI);
         int instruction2Width = FontManager.MeasureText(instruction2, instructionFontSize, FontType.UI);
-        
-        FontManager.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray, FontType.UI);
+          FontManager.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray, FontType.UI);
         FontManager.DrawText(instruction2, (screenWidth - instruction2Width) / 2, screenHeight / 2 + 45, instructionFontSize, Color.LightGray, FontType.UI);
     }
-    
-    private void DrawGameOver()
-    {
-        Raylib.ClearBackground(new Color(100, 0, 0, 255));
-        
-        int screenWidth = Raylib.GetScreenWidth();
-        int screenHeight = Raylib.GetScreenHeight();
-        
-        // Game Over text
-        string gameOverText = "GAME OVER";
-        int gameOverFontSize = 40;
-        int gameOverWidth = FontManager.MeasureText(gameOverText, gameOverFontSize, FontType.Title);
-        FontManager.DrawText(gameOverText, (screenWidth - gameOverWidth) / 2, screenHeight / 2 - 40, gameOverFontSize, Color.White, FontType.Title);
-        
-        // Instructions
-        string instruction1 = "Press R to restart";
-        string instruction2 = "Press Q to return to menu";
-        int instructionFontSize = 16;
-        int instruction1Width = FontManager.MeasureText(instruction1, instructionFontSize, FontType.UI);
-        int instruction2Width = FontManager.MeasureText(instruction2, instructionFontSize, FontType.UI);
-        
-        FontManager.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray, FontType.UI);
-        FontManager.DrawText(instruction2, (screenWidth - instruction2Width) / 2, screenHeight / 2 + 45, instructionFontSize, Color.LightGray, FontType.UI);
-    }
-    
+
     public void SetGameState(GameState newState)
     {
         _currentState = newState;
