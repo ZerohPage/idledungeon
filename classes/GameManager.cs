@@ -20,11 +20,13 @@ public class GameManager
     private Random _random;
     private Combat _combat;
     private FloatingNumberManager _floatingNumbers;
+    private FontManager _fontManager;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
     public Player? CurrentPlayer => _player;
     public FloatingNumberManager FloatingNumbers => _floatingNumbers;
+    public FontManager FontManager => _fontManager;
     
     public GameManager()
     {
@@ -33,6 +35,7 @@ public class GameManager
         _random = new Random();
         _combat = new Combat();
         _floatingNumbers = new FloatingNumberManager();
+        _fontManager = new FontManager();
         
         // Connect floating numbers to combat system
         _combat.SetFloatingNumberManager(_floatingNumbers);
@@ -40,6 +43,9 @@ public class GameManager
     
     public void Initialize()
     {
+        // Load fonts first
+        _fontManager.LoadFonts();
+        
         // Initialize game systems
         StartNewGame();
     }
@@ -206,14 +212,14 @@ public class GameManager
         // Title
         string title = "DUNGEON GAME";
         int titleFontSize = 40;
-        int titleWidth = Raylib.MeasureText(title, titleFontSize);
-        Raylib.DrawText(title, (screenWidth - titleWidth) / 2, screenHeight / 2 - 60, titleFontSize, Color.White);
+        int titleWidth = _fontManager.MeasureText(title, titleFontSize, FontType.Title);
+        _fontManager.DrawText(title, (screenWidth - titleWidth) / 2, screenHeight / 2 - 60, titleFontSize, Color.White, FontType.Title);
         
         // Instructions
         string instruction = "Press SPACE or ENTER to start";
         int instructionFontSize = 20;
-        int instructionWidth = Raylib.MeasureText(instruction, instructionFontSize);
-        Raylib.DrawText(instruction, (screenWidth - instructionWidth) / 2, screenHeight / 2 + 20, instructionFontSize, Color.Gray);
+        int instructionWidth = _fontManager.MeasureText(instruction, instructionFontSize, FontType.UI);
+        _fontManager.DrawText(instruction, (screenWidth - instructionWidth) / 2, screenHeight / 2 + 20, instructionFontSize, Color.Gray, FontType.UI);
     }
     
     private void DrawGameplay()
@@ -239,8 +245,8 @@ public class GameManager
         _floatingNumbers.Draw();
         
         // Draw UI
-        Raylib.DrawText("Dungeon Game", 10, 10, 20, Color.White);
-        Raylib.DrawText("Use WASD to move, ESC to pause", 10, 35, 16, Color.LightGray);
+        _fontManager.DrawText("Dungeon Game", 10, 10, 20, Color.White, FontType.UI);
+        _fontManager.DrawText("Use WASD to move, ESC to pause", 10, 35, 16, Color.LightGray, FontType.UI);
         
         // Draw player health bar
         if (_player != null)
@@ -266,18 +272,18 @@ public class GameManager
         // Pause text
         string pauseText = "PAUSED";
         int pauseFontSize = 40;
-        int pauseWidth = Raylib.MeasureText(pauseText, pauseFontSize);
-        Raylib.DrawText(pauseText, (screenWidth - pauseWidth) / 2, screenHeight / 2 - 40, pauseFontSize, Color.White);
+        int pauseWidth = _fontManager.MeasureText(pauseText, pauseFontSize, FontType.Title);
+        _fontManager.DrawText(pauseText, (screenWidth - pauseWidth) / 2, screenHeight / 2 - 40, pauseFontSize, Color.White, FontType.Title);
         
         // Instructions
         string instruction1 = "Press ESC to resume";
         string instruction2 = "Press Q to return to menu";
         int instructionFontSize = 16;
-        int instruction1Width = Raylib.MeasureText(instruction1, instructionFontSize);
-        int instruction2Width = Raylib.MeasureText(instruction2, instructionFontSize);
+        int instruction1Width = _fontManager.MeasureText(instruction1, instructionFontSize, FontType.UI);
+        int instruction2Width = _fontManager.MeasureText(instruction2, instructionFontSize, FontType.UI);
         
-        Raylib.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray);
-        Raylib.DrawText(instruction2, (screenWidth - instruction2Width) / 2, screenHeight / 2 + 45, instructionFontSize, Color.LightGray);
+        _fontManager.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray, FontType.UI);
+        _fontManager.DrawText(instruction2, (screenWidth - instruction2Width) / 2, screenHeight / 2 + 45, instructionFontSize, Color.LightGray, FontType.UI);
     }
     
     private void DrawGameOver()
@@ -290,18 +296,18 @@ public class GameManager
         // Game Over text
         string gameOverText = "GAME OVER";
         int gameOverFontSize = 40;
-        int gameOverWidth = Raylib.MeasureText(gameOverText, gameOverFontSize);
-        Raylib.DrawText(gameOverText, (screenWidth - gameOverWidth) / 2, screenHeight / 2 - 40, gameOverFontSize, Color.White);
+        int gameOverWidth = _fontManager.MeasureText(gameOverText, gameOverFontSize, FontType.Title);
+        _fontManager.DrawText(gameOverText, (screenWidth - gameOverWidth) / 2, screenHeight / 2 - 40, gameOverFontSize, Color.White, FontType.Title);
         
         // Instructions
         string instruction1 = "Press R to restart";
         string instruction2 = "Press Q to return to menu";
         int instructionFontSize = 16;
-        int instruction1Width = Raylib.MeasureText(instruction1, instructionFontSize);
-        int instruction2Width = Raylib.MeasureText(instruction2, instructionFontSize);
+        int instruction1Width = _fontManager.MeasureText(instruction1, instructionFontSize, FontType.UI);
+        int instruction2Width = _fontManager.MeasureText(instruction2, instructionFontSize, FontType.UI);
         
-        Raylib.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray);
-        Raylib.DrawText(instruction2, (screenWidth - instruction2Width) / 2, screenHeight / 2 + 45, instructionFontSize, Color.LightGray);
+        _fontManager.DrawText(instruction1, (screenWidth - instruction1Width) / 2, screenHeight / 2 + 20, instructionFontSize, Color.LightGray, FontType.UI);
+        _fontManager.DrawText(instruction2, (screenWidth - instruction2Width) / 2, screenHeight / 2 + 45, instructionFontSize, Color.LightGray, FontType.UI);
     }
     
     public void SetGameState(GameState newState)
@@ -312,6 +318,12 @@ public class GameManager
     public void EndGame()
     {
         _currentState = GameState.GameOver;
+    }
+    
+    public void Cleanup()
+    {
+        // Unload fonts when shutting down
+        _fontManager.UnloadFonts();
     }
     
     private void SpawnEnemies()

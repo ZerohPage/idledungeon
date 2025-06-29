@@ -16,6 +16,9 @@ class Program
 
         // Create game manager
         var gameManager = new GameManager();
+        
+        // Initialize the game manager (loads fonts, etc.)
+        gameManager.Initialize();
 
         // Main game loop
         while (!Raylib.WindowShouldClose())
@@ -30,6 +33,7 @@ class Program
         }
 
         // De-Initialization
+        gameManager.Cleanup();
         Raylib.CloseWindow();
     }
 }
