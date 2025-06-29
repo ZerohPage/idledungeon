@@ -281,16 +281,17 @@ public class Dungeon
             }
         }
     }
+    //test
     
     public void DrawMinimap(Vector2 position, int minimapSize, Vector2 playerPosition)
     {
         float scale = (float)minimapSize / Math.Max(Width, Height);
         int scaledWidth = (int)(Width * scale);
         int scaledHeight = (int)(Height * scale);
-        
+
         // Draw minimap background
         Raylib.DrawRectangle((int)position.X - 2, (int)position.Y - 2, scaledWidth + 4, scaledHeight + 4, Color.Black);
-        
+
         // Draw minimap tiles
         for (int x = 0; x < Width; x++)
         {
@@ -303,7 +304,7 @@ public class Dungeon
                         position.X + x * scale,
                         position.Y + y * scale
                     );
-                    
+
                     Color tileColor = tile.Type switch
                     {
                         TileType.Floor => Color.White,
@@ -311,20 +312,20 @@ public class Dungeon
                         TileType.Exit => Color.Red,
                         _ => Color.Gray
                     };
-                    
-                    Raylib.DrawRectangle((int)tilePos.X, (int)tilePos.Y, 
+
+                    Raylib.DrawRectangle((int)tilePos.X, (int)tilePos.Y,
                                        Math.Max(1, (int)scale), Math.Max(1, (int)scale), tileColor);
                 }
             }
         }
-        
+
         // Draw player position on minimap
         Vector2 playerTile = new Vector2(playerPosition.X / TileSize, playerPosition.Y / TileSize);
         Vector2 playerMinimapPos = new Vector2(
             position.X + playerTile.X * scale,
             position.Y + playerTile.Y * scale
         );
-        
+
         Raylib.DrawCircle((int)playerMinimapPos.X, (int)playerMinimapPos.Y, 2, Color.Blue);
     }
     
