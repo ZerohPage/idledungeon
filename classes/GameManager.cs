@@ -1,5 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
+using RaylibGame.Classes.Items;
 
 namespace RaylibGame.Classes;
 
@@ -59,8 +60,8 @@ public class GameManager
         _player = new Player(Vector2.Zero);
         _player.SetDungeon(_dungeon);
         
-        // Spawn enemies at random walkable locations
-        SpawnEnemies();
+        // Spawn enemies and items at random walkable locations
+        SpawnEntities();
         
         _currentState = GameState.Playing;
     }
@@ -165,6 +166,18 @@ public class GameManager
         foreach (var enemy in _enemies)
         {
             enemy.Update(Raylib.GetFrameTime());
+        }
+
+        // Update dungeon items
+        if (_dungeon != null)
+        {
+            _dungeon.UpdateItems(Raylib.GetFrameTime());
+        }
+
+        // Check for item pickups (only if not in combat)
+        if (!_combat.IsInCombat && _player != null && _dungeon != null)
+        {
+            CheckForItemPickups();
         }
         
         // Check for combat encounters (only if not already in combat)
@@ -287,7 +300,7 @@ public class GameManager
         FontManager.UnloadFonts();
     }
     
-    private void SpawnEnemies()
+    private void SpawnEntities()
     {
         _enemies.Clear();
         
@@ -300,6 +313,9 @@ public class GameManager
         var playerPos = _dungeon.EntrancePosition;
         walkablePositions.RemoveAll(pos => Vector2.Distance(pos, playerPos) < _dungeon.TileSize * 2);
         
+        // Also remove exit position to avoid spawning too close to exit
+        walkablePositions.RemoveAll(pos => Vector2.Distance(pos, _dungeon.ExitPosition) < _dungeon.TileSize);
+        
         // Spawn 10 skeleton enemies at random locations
         for (int i = 0; i < 10 && walkablePositions.Count > 0; i++)
         {
@@ -310,7 +326,22 @@ public class GameManager
             var skeleton = new Skeleton(spawnPosition);
             _enemies.Add(skeleton);
             
-            // Remove this position so we don't spawn multiple enemies in the same spot
+            // Remove this position so we don't spawn multiple entities in the same spot
+            walkablePositions.RemoveAt(randomIndex);
+        }
+        
+        // Spawn 10 healing potions at random locations
+        for (int i = 0; i < 10 && walkablePositions.Count > 0; i++)
+        {
+            int randomIndex = _random.Next(walkablePositions.Count);
+            Vector2 spawnPosition = walkablePositions[randomIndex];
+            
+            // Create healing potion and add to dungeon
+            var healingPotion = new HealingPotion(10);
+            healingPotion.Position = spawnPosition;
+            _dungeon.AddItem(healingPotion);
+            
+            // Remove this position so we don't spawn multiple entities in the same spot
             walkablePositions.RemoveAt(randomIndex);
         }
     }
@@ -332,6 +363,31 @@ public class GameManager
                 // Start combat with this enemy
                 _combat.StartCombat(_player, enemy);
                 break; // Only fight one enemy at a time
+            }
+        }
+    }
+
+    private void CheckForItemPickups()
+    {
+        if (_player == null || _dungeon == null) return;
+
+        // Get items near the player
+        float pickupRange = _player.Radius + 5f; // Slightly larger than player radius
+        var nearbyItems = _dungeon.GetItemsNearPosition(_player.Position, pickupRange);
+
+        // Try to pick up each nearby item
+        foreach (var item in nearbyItems.ToList()) // ToList() to avoid modification during iteration
+        {
+            if (item.OnPickup(_player))
+            {
+                // Successfully picked up, remove from dungeon
+                _dungeon.RemoveItem(item);
+                
+                // Add floating number for healing feedback
+                if (item is HealingPotion healingPotion)
+                {
+                    _floatingNumbers.AddHealNumber(item.Position, healingPotion.HealingAmount);
+                }
             }
         }
     }

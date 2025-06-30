@@ -1,5 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
+using RaylibGame.Classes.Items;
 
 namespace RaylibGame.Classes;
 
@@ -52,6 +53,7 @@ public class Dungeon
     private readonly Random _random;
     private Tile[,] _tiles;
     private List<Room> _rooms;
+    private List<Item> _items;
     
     public int Width { get; private set; }
     public int Height { get; private set; }
@@ -59,6 +61,7 @@ public class Dungeon
     public int ViewRadius { get; set; } = 3; // How far the player can see
     public Vector2 EntrancePosition { get; private set; }
     public Vector2 ExitPosition { get; private set; }
+    public IReadOnlyList<Item> Items => _items;
     
     public Dungeon(int width, int height, int? seed = null)
     {
@@ -67,6 +70,7 @@ public class Dungeon
         _random = seed.HasValue ? new Random(seed.Value) : new Random();
         _tiles = new Tile[width, height];
         _rooms = new List<Room>();
+        _items = new List<Item>();
         
         Generate();
     }
@@ -280,6 +284,15 @@ public class Dungeon
                 }
             }
         }
+
+        // Draw items in explored areas
+        foreach (var item in _items)
+        {
+            if (item.IsVisible && IsPositionExplored(item.Position))
+            {
+                item.Draw(cameraOffset);
+            }
+        }
     }
     //test
     
@@ -351,5 +364,65 @@ public class Dungeon
     {
         var walkablePositions = GetWalkablePositions();
         return walkablePositions.Count > 0 ? walkablePositions[_random.Next(walkablePositions.Count)] : Vector2.Zero;
+    }
+
+    /// <summary>
+    /// Updates all items in the dungeon
+    /// </summary>
+    /// <param name="deltaTime">Time elapsed since last update</param>
+    public void UpdateItems(float deltaTime)
+    {
+        foreach (var item in _items)
+        {
+            item.Update(deltaTime);
+        }
+    }
+
+    /// <summary>
+    /// Checks if a world position is in an explored area
+    /// </summary>
+    /// <param name="worldPosition">Position in world coordinates</param>
+    /// <returns>True if the position is explored</returns>
+    public bool IsPositionExplored(Vector2 worldPosition)
+    {
+        int tileX = (int)(worldPosition.X / TileSize);
+        int tileY = (int)(worldPosition.Y / TileSize);
+        
+        if (tileX < 0 || tileX >= Width || tileY < 0 || tileY >= Height)
+            return false;
+            
+        return _tiles[tileX, tileY].IsExplored;
+    }
+
+    /// <summary>
+    /// Gets items near a specific position
+    /// </summary>
+    /// <param name="position">Position to check around</param>
+    /// <param name="radius">Search radius</param>
+    /// <returns>List of items within radius</returns>
+    public List<Item> GetItemsNearPosition(Vector2 position, float radius)
+    {
+        return _items.Where(item => 
+            item.IsVisible && 
+            Vector2.Distance(item.Position, position) <= radius)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Removes an item from the dungeon
+    /// </summary>
+    /// <param name="item">Item to remove</param>
+    public void RemoveItem(Item item)
+    {
+        _items.Remove(item);
+    }
+
+    /// <summary>
+    /// Adds an item to the dungeon
+    /// </summary>
+    /// <param name="item">Item to add</param>
+    public void AddItem(Item item)
+    {
+        _items.Add(item);
     }
 }
