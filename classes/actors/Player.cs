@@ -27,6 +27,7 @@ public class Player
     public int Health { get; private set; }
     public int MaxHealth { get; private set; }
     public bool IsAutoExploring { get => _isAutoExploring; set => _isAutoExploring = value; }
+    public InventoryManager Inventory { get; private set; }
     
     public Player(Vector2 startPosition)
     {
@@ -44,6 +45,7 @@ public class Player
         _isAutoExploring = true;
         _autoMoveTimer = 0f;
         _autoExplorer = new AutoExplorer();
+        Inventory = new InventoryManager(20); // 20 slot inventory
     }
     
     public void SetDungeon(Dungeon dungeon)

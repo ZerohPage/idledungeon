@@ -23,11 +23,13 @@ public class GameManager
     private FloatingNumberManager _floatingNumbers;
     private IntroScreen _introScreen;
     private GameOverScreen _gameOverScreen;
+    private GameScreen _gameScreen;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
     public Player? CurrentPlayer => _player;
     public FloatingNumberManager FloatingNumbers => _floatingNumbers;
+    public Combat Combat => _combat;
     
     public GameManager()
     {
@@ -38,6 +40,7 @@ public class GameManager
         _floatingNumbers = new FloatingNumberManager();
         _introScreen = new IntroScreen(this);
         _gameOverScreen = new GameOverScreen(this);
+        _gameScreen = new GameScreen(this);
         
         // Connect floating numbers to combat system
         _combat.SetFloatingNumberManager(_floatingNumbers);
@@ -74,7 +77,7 @@ public class GameManager
                 _introScreen.Update(Raylib.GetFrameTime());
                 break;
             case GameState.Playing:
-                UpdateGameplay();
+                _gameScreen.Update(Raylib.GetFrameTime());
                 break;
             case GameState.Paused:
                 UpdatePaused();
@@ -93,7 +96,7 @@ public class GameManager
                 _introScreen.Draw();
                 break;
             case GameState.Playing:
-                DrawGameplay();
+                _gameScreen.Draw();
                 break;
             case GameState.Paused:
                 DrawPaused();
@@ -113,80 +116,7 @@ public class GameManager
         }
     }
     
-    private void UpdateGameplay()
-    {
-        // Check for pause
-        if (Raylib.IsKeyPressed(KeyboardKey.Escape))
-        {
-            _currentState = GameState.Paused;
-        }
-        
-        // Update combat system
-        _combat.Update(Raylib.GetFrameTime());
-        
-        // Update floating numbers
-        _floatingNumbers.Update(Raylib.GetFrameTime());
-        
-        // Check combat results
-        if (_combat.State == CombatState.PlayerLoses)
-        {
-            _currentState = GameState.GameOver;
-            _combat.EndCombat();
-            return;
-        }
-        else if (_combat.State == CombatState.PlayerWins)
-        {
-            // Remove defeated enemy
-            if (_combat.CurrentEnemy != null)
-            {
-                _enemies.Remove(_combat.CurrentEnemy);
-            }
-            _combat.EndCombat();
-        }
-        
-        // Update player
-        if (_player != null)
-        {
-            _player.Update(Raylib.GetFrameTime());
-            
-            // Update explored areas based on player position
-            if (_dungeon != null)
-            {
-                _dungeon.UpdateExploredAreas(_player.Position);
-            }
-            
-            // Check if player is dead
-            if (!_player.IsAlive())
-            {
-                _currentState = GameState.GameOver;
-            }
-        }
-        
-        // Update enemies
-        foreach (var enemy in _enemies)
-        {
-            enemy.Update(Raylib.GetFrameTime());
-        }
-
-        // Update dungeon items
-        if (_dungeon != null)
-        {
-            _dungeon.UpdateItems(Raylib.GetFrameTime());
-        }
-
-        // Check for item pickups (only if not in combat)
-        if (!_combat.IsInCombat && _player != null && _dungeon != null)
-        {
-            CheckForItemPickups();
-        }
-        
-        // Check for combat encounters (only if not already in combat)
-        if (!_combat.IsInCombat && _player != null)
-        {
-            CheckForCombatEncounters();
-        }
-    }
-      private void UpdatePaused()
+    private void UpdatePaused()
     {
         // Check for unpause
         if (Raylib.IsKeyPressed(KeyboardKey.Escape))
@@ -221,45 +151,10 @@ public class GameManager
         FontManager.DrawText(instruction, (screenWidth - instructionWidth) / 2, screenHeight / 2 + 20, instructionFontSize, Color.Gray, FontType.UI);
     }
     
-    private void DrawGameplay()
-    {
-        Raylib.ClearBackground(Color.Black);
-        
-        // Draw the dungeon if it exists
-        _dungeon?.Draw();
-        
-        // Draw enemies
-        foreach (var enemy in _enemies)
-        {
-            enemy.Draw();
-        }
-        
-        // Draw the player if it exists
-        _player?.Draw();
-        
-        // Draw combat UI if in combat
-        _combat.Draw();
-        
-        // Draw floating damage numbers
-        _floatingNumbers.Draw();
-        
-        // Draw UI
-        FontManager.DrawText("Dungeon Game", 10, 10, 20, Color.White, FontType.UI);
-        FontManager.DrawText("Use WASD to move, ESC to pause", 10, 35, 16, Color.LightGray, FontType.UI);
-        
-        // Draw player health bar
-        if (_player != null)
-        {
-            _player.DrawHealthBar(new Vector2(10, 70));
-        }
-        
-        Raylib.DrawFPS(10, 100);
-    }
-    
     private void DrawPaused()
     {
         // Draw the game state first (grayed out)
-        DrawGameplay();
+        _gameScreen.Draw();
         
         // Draw pause overlay
         int screenWidth = Raylib.GetScreenWidth();
@@ -346,7 +241,29 @@ public class GameManager
         }
     }
     
-    private void CheckForCombatEncounters()
+    // Public methods for GameScreen to access
+    public void RemoveEnemy(Enemy enemy)
+    {
+        _enemies.Remove(enemy);
+    }
+    
+    public void UpdateEnemies(float deltaTime)
+    {
+        foreach (var enemy in _enemies)
+        {
+            enemy.Update(deltaTime);
+        }
+    }
+    
+    public void DrawEnemies()
+    {
+        foreach (var enemy in _enemies)
+        {
+            enemy.Draw();
+        }
+    }
+    
+    public void CheckForCombatEncounters()
     {
         if (_player == null || _dungeon == null) return;
         
@@ -367,7 +284,7 @@ public class GameManager
         }
     }
 
-    private void CheckForItemPickups()
+    public void CheckForItemPickups()
     {
         if (_player == null || _dungeon == null) return;
 
@@ -383,11 +300,8 @@ public class GameManager
                 // Successfully picked up, remove from dungeon
                 _dungeon.RemoveItem(item);
                 
-                // Add floating number for healing feedback
-                if (item is HealingPotion healingPotion)
-                {
-                    _floatingNumbers.AddHealNumber(item.Position, healingPotion.HealingAmount);
-                }
+                // Add floating number for pickup feedback
+                _floatingNumbers.AddTextNumber(item.Position, $"+{item.Name}", Color.White, 1.5f, 14);
             }
         }
     }
