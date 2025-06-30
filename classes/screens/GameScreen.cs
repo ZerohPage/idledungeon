@@ -1,5 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
+using RaylibGame.Classes.Gui;
 
 namespace RaylibGame.Classes;
 
@@ -10,10 +11,19 @@ public class GameScreen : Screen
 {
     private InventoryScreen _inventoryScreen;
     private bool _showInventory = false;
+    private Button _inventoryButton;
 
     public GameScreen(GameManager gameManager) : base(gameManager)
     {
         _inventoryScreen = new InventoryScreen(gameManager);
+        
+        // Create inventory button in the top-right corner
+        var (screenWidth, screenHeight) = GetScreenSize();
+        _inventoryButton = new Button(gameManager,
+            new Vector2(screenWidth - 120, 10),
+            new Vector2(100, 30),
+            "Inventory");
+        _inventoryButton.OnClick += ToggleInventory;
     }
 
     public override void Update(float deltaTime)
@@ -21,12 +31,7 @@ public class GameScreen : Screen
         // Handle inventory toggle
         if (Raylib.IsKeyPressed(KeyboardKey.I))
         {
-            _showInventory = !_showInventory;
-            if (_showInventory && GameManager.CurrentPlayer != null)
-            {
-                // Set the player's inventory in the inventory screen
-                _inventoryScreen.SetInventory(GameManager.CurrentPlayer.Inventory);
-            }
+            ToggleInventory();
         }
 
         // If showing inventory, update inventory screen instead of game logic
@@ -35,6 +40,9 @@ public class GameScreen : Screen
             _inventoryScreen.Update(deltaTime);
             return;
         }
+
+        // Update inventory button
+        _inventoryButton.Update(deltaTime);
 
         // Check for pause
         if (Raylib.IsKeyPressed(KeyboardKey.Escape))
@@ -134,6 +142,11 @@ public class GameScreen : Screen
         {
             _inventoryScreen.Draw();
         }
+        else
+        {
+            // Only draw inventory button when not showing inventory
+            _inventoryButton.Draw();
+        }
     }
 
     private void DrawGameUI()
@@ -148,5 +161,15 @@ public class GameScreen : Screen
         }
         
         Raylib.DrawFPS(10, 100);
+    }
+
+    private void ToggleInventory()
+    {
+        _showInventory = !_showInventory;
+        if (_showInventory && GameManager.CurrentPlayer != null)
+        {
+            // Set the player's inventory in the inventory screen
+            _inventoryScreen.SetInventory(GameManager.CurrentPlayer.Inventory);
+        }
     }
 }
