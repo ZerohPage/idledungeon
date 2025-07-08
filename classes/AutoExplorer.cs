@@ -358,62 +358,6 @@ public class AutoExplorer
         return furthestTarget;
     }
 
-    private bool IsTargetReachable(Vector2 from, Vector2 to, Dungeon dungeon)
-    {
-        if (from == to) return true;
-        
-        var queue = new Queue<Vector2>();
-        var visited = new HashSet<Vector2>();
-        queue.Enqueue(from);
-        visited.Add(from);
-
-        var directions = new Vector2[] { Vector2.UnitX, -Vector2.UnitX, Vector2.UnitY, -Vector2.UnitY };
-        int maxDepth = 15;
-        
-        while (queue.Count > 0)
-        {
-            var current = queue.Dequeue();
-            
-            if (current == to)
-                return true;
-                
-            if (Vector2.Distance(from, current) > maxDepth)
-                continue;
-
-            foreach (var dir in directions)
-            {
-                var next = current + dir;
-                
-                if (!visited.Contains(next) && 
-                    IsValidGridPosition(next, dungeon) &&
-                    dungeon.IsWalkable((int)next.X, (int)next.Y))
-                {
-                    visited.Add(next);
-                    queue.Enqueue(next);
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private Vector2 GetDirectionToTarget(Vector2 from, Vector2 to)
-    {
-        Vector2 diff = to - from;
-        
-        // Prefer moving in the direction with the largest difference
-        if (Math.Abs(diff.X) > Math.Abs(diff.Y))
-        {
-            return new Vector2(Math.Sign(diff.X), 0);
-        }
-        else if (Math.Abs(diff.Y) > 0)
-        {
-            return new Vector2(0, Math.Sign(diff.Y));
-        }
-        
-        return Vector2.Zero;
-    }
-
     private Vector2 ChooseRandomDirection(Vector2 currentGridPosition, Dungeon dungeon)
     {
         Vector2[] allDirections = {
@@ -490,11 +434,6 @@ public class AutoExplorer
     {
         if (_reachablePositions.Count == 0) return 0;
         return (int)((float)_visitedPositions.Count / _reachablePositions.Count * 100);
-    }
-
-    public int GetTotalReachablePositions()
-    {
-        return _reachablePositions.Count;
     }
 
     public HashSet<Vector2> GetReachablePositions()

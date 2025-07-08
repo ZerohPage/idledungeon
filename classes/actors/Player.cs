@@ -8,7 +8,7 @@ public class Player
     private Vector2 _gridPosition; // Grid coordinates
     private Vector2 _worldPosition; // Pixel coordinates for drawing
     private float _moveTimer; // Timer for smooth movement animation
-    private float _moveDuration = 0.06f; // Time to move between grid cells (150% faster for testing)
+    private float _moveDuration = 0.01f; // Time to move between grid cells (150% faster for testing)
     private Vector2 _moveStartPos; // Starting position for smooth movement
     private Vector2 _moveEndPos; // Ending position for smooth movement
     private bool _isMoving;
@@ -17,7 +17,7 @@ public class Player
     private Dungeon? _currentDungeon;
     private bool _isAutoExploring;
     private float _autoMoveTimer;
-    private float _autoMoveCooldown = 0.08f; // Time between auto moves (150% faster for testing)
+    private float _autoMoveCooldown = 0.01f; // Time between auto moves (150% faster for testing)
     private AutoExplorer _autoExplorer;
     private bool _showReachablePositions = false; // Toggle for visualization
     

@@ -13,6 +13,7 @@ class Program
 
         Raylib.InitWindow(screenWidth, screenHeight, "Dungeon Game");
         Raylib.SetTargetFPS(60);
+        Raylib.SetExitKey(KeyboardKey.Null); // Disable automatic exit on ESC key
 
         // Create game manager
         var gameManager = new GameManager();

@@ -247,6 +247,7 @@ public class GameManager
         // Spawn items using consolidated method
         SpawnItems(walkablePositions, () => new HealingPotion(10), 10);
         SpawnItems(walkablePositions, () => new OldBoots(), 5);
+        SpawnItems(walkablePositions, () => new BrokenSword(), 5);
     }
     
     /// <summary>
