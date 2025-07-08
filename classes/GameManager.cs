@@ -8,6 +8,7 @@ public enum GameState
 {
     Intro,
     Playing,
+    Inventory,
     Paused,
     GameOver
 }
@@ -24,12 +25,16 @@ public class GameManager
     private IntroScreen _introScreen;
     private GameOverScreen _gameOverScreen;
     private GameScreen _gameScreen;
+    private InventoryScreen _inventoryScreen;
+    private DebugManager _debugManager;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
     public Player? CurrentPlayer => _player;
     public FloatingNumberManager FloatingNumbers => _floatingNumbers;
     public Combat Combat => _combat;
+    public IReadOnlyList<Enemy> Enemies => _enemies;
+    public DebugManager Debug => _debugManager;
     
     public GameManager()
     {
@@ -41,6 +46,8 @@ public class GameManager
         _introScreen = new IntroScreen(this);
         _gameOverScreen = new GameOverScreen(this);
         _gameScreen = new GameScreen(this);
+        _inventoryScreen = new InventoryScreen(this);
+        _debugManager = new DebugManager(this);
         
         // Connect floating numbers to combat system
         _combat.SetFloatingNumberManager(_floatingNumbers);
@@ -79,6 +86,9 @@ public class GameManager
             case GameState.Playing:
                 _gameScreen.Update(Raylib.GetFrameTime());
                 break;
+            case GameState.Inventory:
+                _inventoryScreen.Update(Raylib.GetFrameTime());
+                break;
             case GameState.Paused:
                 UpdatePaused();
                 break;
@@ -97,6 +107,9 @@ public class GameManager
                 break;
             case GameState.Playing:
                 _gameScreen.Draw();
+                break;
+            case GameState.Inventory:
+                _inventoryScreen.Draw();
                 break;
             case GameState.Paused:
                 DrawPaused();
@@ -182,6 +195,12 @@ public class GameManager
     public void SetGameState(GameState newState)
     {
         _currentState = newState;
+        
+        // Set up inventory screen when transitioning to it
+        if (newState == GameState.Inventory && _player != null)
+        {
+            _inventoryScreen.SetInventory(_player.Inventory);
+        }
     }
     
     public void EndGame()
@@ -225,16 +244,29 @@ public class GameManager
             walkablePositions.RemoveAt(randomIndex);
         }
         
-        // Spawn 10 healing potions at random locations
-        for (int i = 0; i < 10 && walkablePositions.Count > 0; i++)
+        // Spawn items using consolidated method
+        SpawnItems(walkablePositions, () => new HealingPotion(10), 10);
+        SpawnItems(walkablePositions, () => new OldBoots(), 5);
+    }
+    
+    /// <summary>
+    /// Spawns a specified number of items at random walkable positions
+    /// </summary>
+    /// <typeparam name="T">Type of item to spawn</typeparam>
+    /// <param name="walkablePositions">List of available spawn positions</param>
+    /// <param name="itemFactory">Factory function to create new items</param>
+    /// <param name="count">Number of items to spawn</param>
+    private void SpawnItems<T>(List<Vector2> walkablePositions, Func<T> itemFactory, int count) where T : Item
+    {
+        for (int i = 0; i < count && walkablePositions.Count > 0; i++)
         {
             int randomIndex = _random.Next(walkablePositions.Count);
             Vector2 spawnPosition = walkablePositions[randomIndex];
             
-            // Create healing potion and add to dungeon
-            var healingPotion = new HealingPotion(10);
-            healingPotion.Position = spawnPosition;
-            _dungeon.AddItem(healingPotion);
+            // Create item using factory and add to dungeon
+            var item = itemFactory();
+            item.Position = spawnPosition;
+            _dungeon!.AddItem(item);
             
             // Remove this position so we don't spawn multiple entities in the same spot
             walkablePositions.RemoveAt(randomIndex);

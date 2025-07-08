@@ -134,23 +134,23 @@ public class Player
             
             if (nextMove != Vector2.Zero)
             {
-                Console.WriteLine($"[Player] Attempting move from ({_gridPosition.X}, {_gridPosition.Y}) with direction ({nextMove.X}, {nextMove.Y})");
+                //Console.WriteLine($"[Player] Attempting move from ({_gridPosition.X}, {_gridPosition.Y}) with direction ({nextMove.X}, {nextMove.Y})");
                 if (TryMoveToGridPosition(_gridPosition + nextMove))
                 {
-                    Console.WriteLine($"[Player] Move successful! Now at ({_gridPosition.X}, {_gridPosition.Y})");
+                    //Console.WriteLine($"[Player] Move successful! Now at ({_gridPosition.X}, {_gridPosition.Y})");
                     // Successfully moved in current direction
                     _autoExplorer.OnMoveSuccessful();
                 }
                 else
                 {
-                    Console.WriteLine($"[Player] Move blocked! Still at ({_gridPosition.X}, {_gridPosition.Y})");
+                    //Console.WriteLine($"[Player] Move blocked! Still at ({_gridPosition.X}, {_gridPosition.Y})");
                     // Blocked, need new direction
                     _autoExplorer.OnMoveBlocked();
                 }
             }
             else
             {
-                Console.WriteLine($"[Player] No valid move returned from AutoExplorer");
+                //Console.WriteLine($"[Player] No valid move returned from AutoExplorer");
                 // No valid move found, need new direction
                 _autoExplorer.OnMoveBlocked();
             }
@@ -193,14 +193,14 @@ public class Player
     {
         if (_currentDungeon == null || _isMoving) 
         {
-            Console.WriteLine($"[Player] TryMove failed: dungeon={_currentDungeon != null}, moving={_isMoving}");
+            //Console.WriteLine($"[Player] TryMove failed: dungeon={_currentDungeon != null}, moving={_isMoving}");
             return false;
         }
         
         bool isValid = IsValidGridPosition(gridPos);
         bool isWalkable = isValid ? _currentDungeon.IsWalkable((int)gridPos.X, (int)gridPos.Y) : false;
         
-        Console.WriteLine($"[Player] TryMove to ({gridPos.X}, {gridPos.Y}): Valid={isValid}, Walkable={isWalkable}");
+        //Console.WriteLine($"[Player] TryMove to ({gridPos.X}, {gridPos.Y}): Valid={isValid}, Walkable={isWalkable}");
         
         if (isValid && isWalkable)
         {

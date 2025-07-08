@@ -10,16 +10,12 @@ namespace RaylibGame.Classes;
 /// </summary>
 public class GameScreen : Screen
 {
-    private InventoryScreen _inventoryScreen;
-    private bool _showInventory = false;
     private Button _inventoryButton;
     private float _autoHealCooldown = 0f;
     private const float AUTO_HEAL_COOLDOWN_TIME = 2.0f; // 2 seconds between auto-heals
 
     public GameScreen(GameManager gameManager) : base(gameManager)
     {
-        _inventoryScreen = new InventoryScreen(gameManager);
-        
         // Create inventory button in the top-right corner
         var (screenWidth, screenHeight) = GetScreenSize();
         _inventoryButton = new Button(gameManager,
@@ -37,11 +33,10 @@ public class GameScreen : Screen
             ToggleInventory();
         }
 
-        // If showing inventory, update inventory screen instead of game logic
-        if (_showInventory)
+        // Handle debug info toggle
+        if (Raylib.IsKeyPressed(KeyboardKey.R))
         {
-            _inventoryScreen.Update(deltaTime);
-            return;
+            GameManager.Debug.ToggleDebug();
         }
 
         // Update inventory button
@@ -149,22 +144,17 @@ public class GameScreen : Screen
         // Draw UI
         DrawGameUI();
 
-        // Draw inventory screen on top if showing
-        if (_showInventory)
-        {
-            _inventoryScreen.Draw();
-        }
-        else
-        {
-            // Only draw inventory button when not showing inventory
-            _inventoryButton.Draw();
-        }
+        // Draw debug info if enabled
+        GameManager.Debug.DrawDebugInfo();
+
+        // Draw inventory button
+        _inventoryButton.Draw();
     }
 
     private void DrawGameUI()
     {
         FontManager.DrawText("Dungeon Game", 10, 10, 20, Color.White, FontType.UI);
-        FontManager.DrawText("Use WASD to move, ESC to pause, I for inventory", 10, 35, 16, Color.LightGray, FontType.UI);
+        FontManager.DrawText("Use WASD to move, ESC to pause, I for inventory, R for debug", 10, 35, 16, Color.LightGray, FontType.UI);
         FontManager.DrawText("Auto-healing at 25% health", 10, 55, 14, Color.Green, FontType.UI);
         
         // Draw player health bar
@@ -178,11 +168,11 @@ public class GameScreen : Screen
 
     private void ToggleInventory()
     {
-        _showInventory = !_showInventory;
-        if (_showInventory && GameManager.CurrentPlayer != null)
+        // Set the player's inventory in the inventory screen before switching
+        if (GameManager.CurrentPlayer != null)
         {
-            // Set the player's inventory in the inventory screen
-            _inventoryScreen.SetInventory(GameManager.CurrentPlayer.Inventory);
+            // We'll need to access the inventory screen through GameManager
+            GameManager.SetGameState(GameState.Inventory);
         }
     }
 
