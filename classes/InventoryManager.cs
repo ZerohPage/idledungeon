@@ -162,6 +162,23 @@ public class InventoryManager
     }
 
     /// <summary>
+    /// Finds the first item of a specific type and returns its slot index
+    /// </summary>
+    /// <typeparam name="T">The type of item to find</typeparam>
+    /// <returns>The slot index of the first item of the specified type, or -1 if not found</returns>
+    public int FindFirstItemOfType<T>() where T : Item
+    {
+        for (int i = 0; i < _items.Count; i++)
+        {
+            if (_items[i] is T)
+            {
+                return i;
+            }
+        }
+        return -1; // Not found
+    }
+
+    /// <summary>
     /// Gets the total count of a specific item type
     /// </summary>
     /// <typeparam name="T">The type of item to count</typeparam>

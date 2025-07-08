@@ -1,6 +1,7 @@
 using Raylib_cs;
 using System.Numerics;
 using RaylibGame.Classes.Gui;
+using RaylibGame.Classes.Items;
 
 namespace RaylibGame.Classes;
 
@@ -12,6 +13,8 @@ public class GameScreen : Screen
     private InventoryScreen _inventoryScreen;
     private bool _showInventory = false;
     private Button _inventoryButton;
+    private float _autoHealCooldown = 0f;
+    private const float AUTO_HEAL_COOLDOWN_TIME = 2.0f; // 2 seconds between auto-heals
 
     public GameScreen(GameManager gameManager) : base(gameManager)
     {
@@ -43,6 +46,12 @@ public class GameScreen : Screen
 
         // Update inventory button
         _inventoryButton.Update(deltaTime);
+
+        // Update auto-heal cooldown
+        if (_autoHealCooldown > 0f)
+        {
+            _autoHealCooldown -= deltaTime;
+        }
 
         // Check for pause
         if (Raylib.IsKeyPressed(KeyboardKey.Escape))
@@ -78,6 +87,9 @@ public class GameScreen : Screen
         if (GameManager.CurrentPlayer != null)
         {
             GameManager.CurrentPlayer.Update(deltaTime);
+            
+            // Auto-use healing potion if health is below 25%
+            CheckAutoHeal();
             
             // Update explored areas based on player position
             if (GameManager.CurrentDungeon != null)
@@ -153,14 +165,15 @@ public class GameScreen : Screen
     {
         FontManager.DrawText("Dungeon Game", 10, 10, 20, Color.White, FontType.UI);
         FontManager.DrawText("Use WASD to move, ESC to pause, I for inventory", 10, 35, 16, Color.LightGray, FontType.UI);
+        FontManager.DrawText("Auto-healing at 25% health", 10, 55, 14, Color.Green, FontType.UI);
         
         // Draw player health bar
         if (GameManager.CurrentPlayer != null)
         {
-            GameManager.CurrentPlayer.DrawHealthBar(new Vector2(10, 70));
+            GameManager.CurrentPlayer.DrawHealthBar(new Vector2(10, 80));
         }
         
-        Raylib.DrawFPS(10, 100);
+        Raylib.DrawFPS(10, 110);
     }
 
     private void ToggleInventory()
@@ -170,6 +183,33 @@ public class GameScreen : Screen
         {
             // Set the player's inventory in the inventory screen
             _inventoryScreen.SetInventory(GameManager.CurrentPlayer.Inventory);
+        }
+    }
+
+    private void CheckAutoHeal()
+    {
+        if (GameManager.CurrentPlayer == null) return;
+
+        var player = GameManager.CurrentPlayer;
+        
+        // Check if health is below 25%
+        float healthPercentage = (float)player.Health / player.MaxHealth;
+        if (healthPercentage < 0.25f)
+        {
+            // Find the first healing potion in inventory
+            var inventory = player.Inventory;
+            int potionSlot = inventory.FindFirstItemOfType<HealingPotion>();
+            
+            if (potionSlot >= 0)
+            {
+                var healingPotion = inventory.GetItemAt(potionSlot) as HealingPotion;
+                // Use the healing potion
+                if (inventory.UseItem(potionSlot, player))
+                {
+                    // Add floating heal number for feedback
+                    GameManager.FloatingNumbers.AddHealNumber(player.Position, healingPotion!.HealingAmount);
+                }
+            }
         }
     }
 }
