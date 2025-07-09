@@ -122,24 +122,21 @@ public abstract class Item
     /// <summary>
     /// Renders the item to the screen
     /// </summary>
-    /// <param name="cameraOffset">Camera offset for world positioning</param>
-    public virtual void Draw(Vector2 cameraOffset = default)
+    public virtual void Draw()
     {
         if (!IsVisible) return;
 
-        Vector2 screenPosition = Position + cameraOffset;
-        
-        // Draw item as a colored rectangle by default
+        // Draw item as a colored rectangle by default (camera transformation handled by Raylib)
         // Derived classes should override this for custom rendering
         Raylib.DrawRectangleV(
-            new Vector2(screenPosition.X - Size.X / 2, screenPosition.Y - Size.Y / 2),
+            new Vector2(Position.X - Size.X / 2, Position.Y - Size.Y / 2),
             Size,
             RarityColor
         );
 
         // Draw outline
         Raylib.DrawRectangleLinesEx(
-            new Rectangle(screenPosition.X - Size.X / 2, screenPosition.Y - Size.Y / 2, Size.X, Size.Y),
+            new Rectangle(Position.X - Size.X / 2, Position.Y - Size.Y / 2, Size.X, Size.Y),
             1,
             Color.Black
         );

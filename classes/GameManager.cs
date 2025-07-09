@@ -27,7 +27,6 @@ public class GameManager
     private GameScreen _gameScreen;
     private InventoryScreen _inventoryScreen;
     private DebugManager _debugManager;
-    private CameraManager _cameraManager;
     
     public GameState CurrentState => _currentState;
     public Dungeon? CurrentDungeon => _dungeon;
@@ -36,7 +35,6 @@ public class GameManager
     public Combat Combat => _combat;
     public IReadOnlyList<Enemy> Enemies => _enemies;
     public DebugManager Debug => _debugManager;
-    public CameraManager Camera => _cameraManager;
     
     public GameManager()
     {
@@ -50,7 +48,9 @@ public class GameManager
         _gameScreen = new GameScreen(this);
         _inventoryScreen = new InventoryScreen(this);
         _debugManager = new DebugManager(this);
-        _cameraManager = new CameraManager();
+        
+        // Initialize static camera manager
+        CameraManager.Initialize();
         
         // Connect floating numbers to combat system
         _combat.SetFloatingNumberManager(_floatingNumbers);
@@ -74,9 +74,9 @@ public class GameManager
         _player.SetDungeon(_dungeon);
         
         // Setup camera
-        _cameraManager.SetDungeonBounds(_dungeon.Width * _dungeon.TileSize, _dungeon.Height * _dungeon.TileSize);
-        _cameraManager.SetTarget(_player.Position);
-        _cameraManager.SnapToTarget(); // Start centered on player
+        CameraManager.SetDungeonBounds(_dungeon.Width * _dungeon.TileSize, _dungeon.Height * _dungeon.TileSize);
+        CameraManager.SetTarget(_player.Position);
+        CameraManager.SnapToTarget(); // Start centered on player
         
         // Spawn enemies and items at random walkable locations
         SpawnEntities();
@@ -299,11 +299,11 @@ public class GameManager
         }
     }
     
-    public void DrawEnemies(Vector2 cameraOffset = default)
+    public void DrawEnemies()
     {
         foreach (var enemy in _enemies)
         {
-            enemy.Draw(cameraOffset);
+            enemy.Draw();
         }
     }
     

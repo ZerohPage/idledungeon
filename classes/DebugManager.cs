@@ -34,7 +34,10 @@ public class DebugManager
     {
         if (!_showDebugInfo || _gameManager.CurrentDungeon == null) return;
 
-        // Draw all items with colored circles
+        // Begin camera mode for world items
+        CameraManager.BeginMode();
+        
+        // Draw all items with colored circles (rendered in world space)
         foreach (var item in _gameManager.CurrentDungeon.Items)
         {
             if (item.IsVisible)
@@ -53,7 +56,7 @@ public class DebugManager
             }
         }
 
-        // Draw enemy positions with purple X marks
+        // Draw enemy positions with purple X marks (rendered in world space)
         foreach (var enemy in _gameManager.Enemies)
         {
             if (enemy.IsAlive)
@@ -69,8 +72,11 @@ public class DebugManager
                                 new Vector2(pos.X - size, pos.Y + size), Color.Purple);
             }
         }
+        
+        // End camera mode
+        CameraManager.EndMode();
 
-        // Show debug information and legend
+        // Show debug information and legend (rendered in screen space)
         DrawDebugText();
     }
 
@@ -81,19 +87,19 @@ public class DebugManager
     {
         if (_gameManager.CurrentDungeon == null) return;
 
-        // Show debug information
-        string debugInfo = $"Debug Mode: {_gameManager.CurrentDungeon.Items.Count} items, {_gameManager.Enemies.Count} enemies";
-        FontManager.DrawText(debugInfo, 10, 130, 14, Color.Yellow, FontType.UI);
+        // Show debug information in a more visible location (right side of screen)
+        string debugInfo = $"DEBUG: {_gameManager.CurrentDungeon.Items.Count} items, {_gameManager.Enemies.Count} enemies";
+        FontManager.DrawText(debugInfo, 400, 10, 16, Color.Yellow, FontType.UI);
         
         // Show legend
-        FontManager.DrawText("Red = Healing Potions, Brown = Old Boots, Purple X = Enemies", 10, 150, 12, Color.White, FontType.UI);
+        FontManager.DrawText("Red=Potions, Brown=Boots, Purple X=Enemies", 400, 30, 14, Color.White, FontType.UI);
         
         // Show player info if available
         if (_gameManager.CurrentPlayer != null)
         {
             var player = _gameManager.CurrentPlayer;
-            string playerInfo = $"Player: Health {player.Health}/{player.MaxHealth}, Inventory {player.Inventory.UsedSlots}/{player.Inventory.MaxSlots}";
-            FontManager.DrawText(playerInfo, 10, 170, 12, Color.Blue, FontType.UI);
+            string playerInfo = $"Player: HP {player.Health}/{player.MaxHealth}, Inv {player.Inventory.UsedSlots}/{player.Inventory.MaxSlots}";
+            FontManager.DrawText(playerInfo, 400, 50, 14, Color.SkyBlue, FontType.UI);
         }
     }
 }

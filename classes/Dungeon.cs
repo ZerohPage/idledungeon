@@ -255,18 +255,18 @@ public class Dungeon
         _tiles[exitRoom.CenterX, exitRoom.CenterY] = new Tile { Type = TileType.Exit };
     }
     
-    public void Draw(Vector2 cameraOffset = default)
+    public void Draw()
     {
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
             {
                 var tile = _tiles[x, y];
-                var position = new Vector2(x * TileSize + cameraOffset.X, y * TileSize + cameraOffset.Y);
+                var position = new Vector2(x * TileSize, y * TileSize);
                 
                 if (tile.IsExplored)
                 {
-                    // Draw explored tiles
+                    // Draw explored tiles (camera transformation handled by Raylib)
                     Raylib.DrawRectangleV(position, new Vector2(TileSize, TileSize), tile.Color);
                     
                     // Draw tile borders for better visibility
@@ -290,7 +290,7 @@ public class Dungeon
         {
             if (item.IsVisible && IsPositionExplored(item.Position))
             {
-                item.Draw(cameraOffset);
+                item.Draw();
             }
         }
     }

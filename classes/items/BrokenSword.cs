@@ -19,28 +19,26 @@ public class BrokenSword : Item
         Size = new Vector2(18, 8); // Slightly different size for weapon
     }
 
-    public override void Draw(Vector2 cameraOffset = default)
+    public override void Draw()
     {
         if (!IsVisible) return;
 
-        Vector2 screenPosition = Position + cameraOffset;
-        
-        // Draw the sword blade (gray for broken metal)
-        Vector2 bladeStart = new Vector2(screenPosition.X - Size.X / 2, screenPosition.Y - 2);
-        Vector2 bladeEnd = new Vector2(screenPosition.X + Size.X / 2 - 4, screenPosition.Y - 2);
+        // Draw the sword blade (gray for broken metal) - camera transformation handled by Raylib
+        Vector2 bladeStart = new Vector2(Position.X - Size.X / 2, Position.Y - 2);
+        Vector2 bladeEnd = new Vector2(Position.X + Size.X / 2 - 4, Position.Y - 2);
         Raylib.DrawLineEx(bladeStart, bladeEnd, 4.0f, Color.Gray);
         
         // Draw the hilt (brown for leather grip)
-        Vector2 hiltPos = new Vector2(screenPosition.X + Size.X / 2 - 4, screenPosition.Y);
+        Vector2 hiltPos = new Vector2(Position.X + Size.X / 2 - 4, Position.Y);
         Raylib.DrawRectangleV(new Vector2(hiltPos.X, hiltPos.Y - 3), new Vector2(4, 6), Color.Brown);
         
         // Draw some rust spots (dark red dots)
-        Raylib.DrawCircleV(new Vector2(screenPosition.X - 3, screenPosition.Y - 1), 1.0f, Color.Maroon);
-        Raylib.DrawCircleV(new Vector2(screenPosition.X + 2, screenPosition.Y), 1.0f, Color.Maroon);
+        Raylib.DrawCircleV(new Vector2(Position.X - 3, Position.Y - 1), 1.0f, Color.Maroon);
+        Raylib.DrawCircleV(new Vector2(Position.X + 2, Position.Y), 1.0f, Color.Maroon);
         
         // Draw outline for visibility
         Raylib.DrawRectangleLinesEx(
-            new Rectangle(screenPosition.X - Size.X / 2, screenPosition.Y - Size.Y / 2, Size.X, Size.Y),
+            new Rectangle(Position.X - Size.X / 2, Position.Y - Size.Y / 2, Size.X, Size.Y),
             1,
             Color.Black
         );

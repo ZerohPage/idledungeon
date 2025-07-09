@@ -61,8 +61,8 @@ public class GameScreen : Screen
         // Update camera to follow player
         if (GameManager.CurrentPlayer != null)
         {
-            GameManager.Camera.SetTarget(GameManager.CurrentPlayer.Position);
-            GameManager.Camera.Update(deltaTime);
+            CameraManager.SetTarget(GameManager.CurrentPlayer.Position);
+            CameraManager.Update(deltaTime);
         }
         
         // Update floating numbers
@@ -133,31 +133,28 @@ public class GameScreen : Screen
     {
         Raylib.ClearBackground(Color.Black);
         
-        // Get camera offset for world rendering
-        Vector2 cameraOffset = GameManager.Camera.Offset;
+        // Begin camera mode for world rendering
+        CameraManager.BeginMode();
         
-        // Draw the dungeon if it exists
-        GameManager.CurrentDungeon?.Draw(cameraOffset);
+        // Draw world objects (no offset needed - camera handles transformation)
+        GameManager.CurrentDungeon?.Draw();
+        GameManager.DrawEnemies();
+        GameManager.CurrentPlayer?.Draw();
+        GameManager.FloatingNumbers.Draw();
         
-        // Draw enemies
-        GameManager.DrawEnemies(cameraOffset);
+        // End camera mode
+        CameraManager.EndMode();
         
-        // Draw the player if it exists
-        GameManager.CurrentPlayer?.Draw(cameraOffset);
-        
-        // Draw combat UI if in combat
-        GameManager.Combat.Draw();
-        
-        // Draw floating damage numbers
-        GameManager.FloatingNumbers.Draw(cameraOffset);
-        
-        // Draw UI (no camera offset for UI elements)
+        // Draw UI (rendered in screen space, outside camera mode)
         DrawGameUI();
+        
+        // Draw combat UI if in combat (screen space)
+        GameManager.Combat.Draw();
 
         // Draw debug info if enabled
         GameManager.Debug.DrawDebugInfo();
 
-        // Draw inventory button
+        // Draw inventory button (screen space)
         _inventoryButton.Draw();
     }
 
