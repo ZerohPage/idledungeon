@@ -10,7 +10,8 @@ public enum GameState
     Playing,
     Inventory,
     Paused,
-    GameOver
+    GameOver,
+    GuiDesigner
 }
 
 public class GameManager
@@ -26,6 +27,7 @@ public class GameManager
     private GameOverScreen _gameOverScreen;
     private GameScreen _gameScreen;
     private InventoryScreen _inventoryScreen;
+    private GuiDesignerScreen _guiDesignerScreen;
     private DebugManager _debugManager;
     
     public GameState CurrentState => _currentState;
@@ -47,6 +49,7 @@ public class GameManager
         _gameOverScreen = new GameOverScreen(this);
         _gameScreen = new GameScreen(this);
         _inventoryScreen = new InventoryScreen(this);
+        _guiDesignerScreen = new GuiDesignerScreen(this);
         _debugManager = new DebugManager(this);
         
         // Initialize static camera manager
@@ -106,6 +109,9 @@ public class GameManager
             case GameState.GameOver:
                 _gameOverScreen.Update(Raylib.GetFrameTime());
                 break;
+            case GameState.GuiDesigner:
+                _guiDesignerScreen.Update(Raylib.GetFrameTime());
+                break;
         }
     }
     
@@ -127,6 +133,9 @@ public class GameManager
                 break;
             case GameState.GameOver:
                 _gameOverScreen.Draw();
+                break;
+            case GameState.GuiDesigner:
+                _guiDesignerScreen.Draw();
                 break;
         }
     }

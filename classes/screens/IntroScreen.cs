@@ -11,6 +11,7 @@ public class IntroScreen : Screen
 {
     private Button startButton;
     private Button quitButton;
+    private Button guiDesignerButton;
 
     public IntroScreen(GameManager gameManager) : base(gameManager)
     {
@@ -27,10 +28,22 @@ public class IntroScreen : Screen
         startButton.PressedColor = Color.LightGray;
         startButton.OnClick += () => GameManager.StartNewGame();
 
-        // Create quit button below start button
-        var quitButtonPosition = new Vector2(
+        // Create GUI Designer button below start button
+        var designerButtonPosition = new Vector2(
             (screenWidth - 200) / 2, // BigButton is 200px wide
             screenHeight / 2 + 140
+        );
+        
+        guiDesignerButton = Button.CreateBigButton(gameManager, designerButtonPosition, "GUI DESIGNER");
+        guiDesignerButton.BackgroundColor = Color.DarkGreen;
+        guiDesignerButton.HoverColor = Color.Green;
+        guiDesignerButton.PressedColor = Color.LightGray;
+        guiDesignerButton.OnClick += () => GameManager.SetGameState(GameState.GuiDesigner);
+
+        // Create quit button below designer button
+        var quitButtonPosition = new Vector2(
+            (screenWidth - 200) / 2, // BigButton is 200px wide
+            screenHeight / 2 + 220
         );
         
         quitButton = Button.CreateBigButton(gameManager, quitButtonPosition, "QUIT");
@@ -42,8 +55,9 @@ public class IntroScreen : Screen
 
     public override void Update(float deltaTime)
     {
-        // Update both buttons
+        // Update all buttons
         startButton.Update(deltaTime);
+        guiDesignerButton.Update(deltaTime);
         quitButton.Update(deltaTime);
 
         // Check for input to start the game (keeping keyboard support)
@@ -67,8 +81,9 @@ public class IntroScreen : Screen
         string instruction = "Press SPACE or ENTER to start, or use buttons below";
         DrawCenteredText(instruction, screenHeight / 2 + 20, 16, Color.Gray, FontType.UI);
 
-        // Draw both buttons
+        // Draw all buttons
         startButton.Draw();
+        guiDesignerButton.Draw();
         quitButton.Draw();
     }
 }
