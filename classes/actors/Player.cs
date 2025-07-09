@@ -68,13 +68,13 @@ public class Player
     public void Update(float deltaTime)
     {
         // Check for toggle between manual and auto exploration
-        if (Raylib.IsKeyPressed(KeyboardKey.Tab))
+        if (InputManager.IsAutoExploreTogglePressed)
         {
             _isAutoExploring = !_isAutoExploring;
         }
         
         // Check for toggle to show reachable positions visualization
-        if (Raylib.IsKeyPressed(KeyboardKey.R))
+        if (InputManager.IsReachablePositionsTogglePressed)
         {
             _showReachablePositions = !_showReachablePositions;
         }
@@ -161,30 +161,10 @@ public class Player
 
     private void HandleInput()
     {
-        Vector2 inputDirection = Vector2.Zero;
-        
-        // Handle movement input
-        if (Raylib.IsKeyPressed(KeyboardKey.W) || Raylib.IsKeyPressed(KeyboardKey.Up))
+        // Use InputManager for movement
+        if (InputManager.HasMovementInput)
         {
-            inputDirection.Y = -1.0f;
-        }
-        if (Raylib.IsKeyPressed(KeyboardKey.S) || Raylib.IsKeyPressed(KeyboardKey.Down))
-        {
-            inputDirection.Y = 1.0f;
-        }
-        if (Raylib.IsKeyPressed(KeyboardKey.A) || Raylib.IsKeyPressed(KeyboardKey.Left))
-        {
-            inputDirection.X = -1.0f;
-        }
-        if (Raylib.IsKeyPressed(KeyboardKey.D) || Raylib.IsKeyPressed(KeyboardKey.Right))
-        {
-            inputDirection.X = 1.0f;
-        }
-        
-        // Only move in one direction at a time for grid movement
-        if (inputDirection != Vector2.Zero)
-        {
-            Vector2 targetPos = _gridPosition + inputDirection;
+            Vector2 targetPos = _gridPosition + InputManager.MovementDirection;
             TryMoveToGridPosition(targetPos);
         }
     }

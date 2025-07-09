@@ -152,10 +152,10 @@ public class Dungeon
     
     private void GenerateRooms()
     {
-        const int maxAttempts = 100;
+        const int maxAttempts = 300; // Increased attempts for larger dungeon
         const int minRoomSize = 4;
-        const int maxRoomSize = 10;
-        const int maxRooms = 8;
+        const int maxRoomSize = 12; // Slightly larger max room size
+        const int maxRooms = 25; // Increased from 8 to 25 rooms for 120x80 dungeon
         
         for (int attempt = 0; attempt < maxAttempts && _rooms.Count < maxRooms; attempt++)
         {

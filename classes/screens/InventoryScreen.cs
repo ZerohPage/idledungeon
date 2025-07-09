@@ -74,7 +74,7 @@ public class InventoryScreen : Screen
     public override void Update(float deltaTime)
     {
         // Handle input for closing inventory
-        if (Raylib.IsKeyPressed(KeyboardKey.I) || Raylib.IsKeyPressed(KeyboardKey.Escape))
+        if (InputManager.IsInventoryClosePressed)
         {
             GameManager.SetGameState(GameState.Playing);
             return;
@@ -132,31 +132,34 @@ public class InventoryScreen : Screen
 
         int maxSlots = Math.Max(_inventory.UsedSlots - 1, 0);
         
-        if (Raylib.IsKeyPressed(KeyboardKey.Left))
+        // Use InputManager for navigation
+        Vector2 navInput = InputManager.InventoryNavigation;
+        
+        if (navInput.X < 0) // Left
         {
             _selectedSlot = Math.Max(0, _selectedSlot - 1);
         }
-        else if (Raylib.IsKeyPressed(KeyboardKey.Right))
+        else if (navInput.X > 0) // Right
         {
             _selectedSlot = Math.Min(maxSlots, _selectedSlot + 1);
         }
-        else if (Raylib.IsKeyPressed(KeyboardKey.Up))
+        else if (navInput.Y < 0) // Up
         {
             _selectedSlot = Math.Max(0, _selectedSlot - SLOTS_PER_ROW);
         }
-        else if (Raylib.IsKeyPressed(KeyboardKey.Down))
+        else if (navInput.Y > 0) // Down
         {
             _selectedSlot = Math.Min(maxSlots, _selectedSlot + SLOTS_PER_ROW);
         }
 
         // Handle mouse selection
-        Vector2 mousePos = Raylib.GetMousePosition();
+        Vector2 mousePos = InputManager.GetMousePosition();
         for (int i = 0; i < (_inventory?.UsedSlots ?? 0); i++)
         {
             var slotRect = GetSlotRectangle(i);
             if (Raylib.CheckCollisionPointRec(mousePos, slotRect))
             {
-                if (Raylib.IsMouseButtonPressed(MouseButton.Left))
+                if (InputManager.IsMouseButtonPressed(MouseButton.Left))
                 {
                     _selectedSlot = i;
                 }
@@ -164,7 +167,7 @@ public class InventoryScreen : Screen
         }
 
         // Handle item usage with Enter or Space
-        if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Space))
+        if (InputManager.IsInventoryUsePressed)
         {
             UseSelectedItem();
         }

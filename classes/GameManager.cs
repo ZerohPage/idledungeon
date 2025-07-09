@@ -86,6 +86,9 @@ public class GameManager
     
     public void Update()
     {
+        // Update input manager first so all input states are fresh
+        InputManager.Update();
+        
         switch (_currentState)
         {
             case GameState.Intro:
@@ -140,13 +143,13 @@ public class GameManager
     private void UpdatePaused()
     {
         // Check for unpause
-        if (Raylib.IsKeyPressed(KeyboardKey.Escape))
+        if (InputManager.IsPausePressed)
         {
             _currentState = GameState.Playing;
         }
         
         // Check for return to intro
-        if (Raylib.IsKeyPressed(KeyboardKey.Q))
+        if (InputManager.IsKeyPressed(KeyboardKey.Q))
         {
             _currentState = GameState.Intro;
         }

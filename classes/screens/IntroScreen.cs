@@ -47,7 +47,7 @@ public class IntroScreen : Screen
         quitButton.Update(deltaTime);
 
         // Check for input to start the game (keeping keyboard support)
-        if (Raylib.IsKeyPressed(KeyboardKey.Space) || Raylib.IsKeyPressed(KeyboardKey.Enter))
+        if (InputManager.IsMenuConfirmPressed)
         {
             GameManager.StartNewGame();
         }

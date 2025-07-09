@@ -28,13 +28,13 @@ public class GameScreen : Screen
     public override void Update(float deltaTime)
     {
         // Handle inventory toggle
-        if (Raylib.IsKeyPressed(KeyboardKey.I))
+        if (InputManager.IsInventoryTogglePressed)
         {
             ToggleInventory();
         }
 
         // Handle debug info toggle
-        if (Raylib.IsKeyPressed(KeyboardKey.R))
+        if (InputManager.IsDebugTogglePressed)
         {
             GameManager.Debug.ToggleDebug();
         }
@@ -49,7 +49,7 @@ public class GameScreen : Screen
         }
 
         // Check for pause
-        if (Raylib.IsKeyPressed(KeyboardKey.Escape))
+        if (InputManager.IsPausePressed)
         {
             GameManager.SetGameState(GameState.Paused);
             return;
