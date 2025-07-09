@@ -227,13 +227,16 @@ public class Player
                gridPos.Y >= 0 && gridPos.Y < _currentDungeon.Height;
     }
     
-    public void Draw()
+    public void Draw(Vector2 cameraOffset = default)
     {
+        // Apply camera offset to all world positions
+        Vector2 screenPosition = _worldPosition + cameraOffset;
+        
         // Draw player circle
-        Raylib.DrawCircleV(_worldPosition, _radius, _color);
+        Raylib.DrawCircleV(screenPosition, _radius, _color);
         
         // Draw player outline
-        Raylib.DrawCircleLinesV(_worldPosition, _radius, Color.White);
+        Raylib.DrawCircleLinesV(screenPosition, _radius, Color.White);
         
         // Draw target position when auto-exploring (show current direction)
         if (_isAutoExploring && _autoExplorer.CurrentDirection != Vector2.Zero)
@@ -243,9 +246,9 @@ public class Player
             Vector2 targetWorldPos = new Vector2(futurePos.X * (_currentDungeon?.TileSize ?? 20) + (_currentDungeon?.TileSize ?? 20) / 2,
                                                futurePos.Y * (_currentDungeon?.TileSize ?? 20) + (_currentDungeon?.TileSize ?? 20) / 2);
             
-            // Draw directional arrow
-            Vector2 arrowStart = _worldPosition;
-            Vector2 arrowEnd = _worldPosition + _autoExplorer.CurrentDirection * 30; // 30 pixels in direction
+            // Draw directional arrow (apply camera offset)
+            Vector2 arrowStart = screenPosition;
+            Vector2 arrowEnd = screenPosition + _autoExplorer.CurrentDirection * 30; // 30 pixels in direction
             
             Raylib.DrawLineV(arrowStart, arrowEnd, Color.Orange);
             
@@ -260,10 +263,10 @@ public class Player
         if (_currentDungeon != null)
         {
             Vector2 gridCenter = new Vector2(_gridPosition.X * _currentDungeon.TileSize + _currentDungeon.TileSize / 2,
-                                           _gridPosition.Y * _currentDungeon.TileSize + _currentDungeon.TileSize / 2);
+                                           _gridPosition.Y * _currentDungeon.TileSize + _currentDungeon.TileSize / 2) + cameraOffset;
             Raylib.DrawRectangleLinesEx(new Rectangle(
-                _gridPosition.X * _currentDungeon.TileSize, 
-                _gridPosition.Y * _currentDungeon.TileSize,
+                _gridPosition.X * _currentDungeon.TileSize + cameraOffset.X, 
+                _gridPosition.Y * _currentDungeon.TileSize + cameraOffset.Y,
                 _currentDungeon.TileSize, 
                 _currentDungeon.TileSize), 1, Color.Yellow);
             
@@ -274,7 +277,7 @@ public class Player
                 foreach (var pos in reachablePositions)
                 {
                     Vector2 worldPos = new Vector2(pos.X * _currentDungeon.TileSize + _currentDungeon.TileSize / 2,
-                                                 pos.Y * _currentDungeon.TileSize + _currentDungeon.TileSize / 2);
+                                                 pos.Y * _currentDungeon.TileSize + _currentDungeon.TileSize / 2) + cameraOffset;
                     // Semi-transparent red dots
                     Raylib.DrawCircleV(worldPos, 2.0f, new Color(255, 0, 0, 128));
                 }

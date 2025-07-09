@@ -49,17 +49,20 @@ public class FloatingNumber
         _lifetime -= deltaTime;
     }
     
-    public void Draw()
+    public void Draw(Vector2 cameraOffset = default)
     {
         if (IsExpired) return;
+        
+        // Apply camera offset to position
+        Vector2 screenPosition = _position + cameraOffset;
         
         // Calculate alpha based on remaining lifetime
         float alpha = _lifetime / _maxLifetime;
         Color drawColor = new Color(_color.R, _color.G, _color.B, (int)(255 * alpha));
         
         // Draw text with outline for better visibility using FontManager
-        FontManager.DrawText(_text, (int)_position.X + 1, (int)_position.Y + 1, _fontSize, Color.Black);
-        FontManager.DrawText(_text, (int)_position.X, (int)_position.Y, _fontSize, drawColor);
+        FontManager.DrawText(_text, (int)screenPosition.X + 1, (int)screenPosition.Y + 1, _fontSize, Color.Black);
+        FontManager.DrawText(_text, (int)screenPosition.X, (int)screenPosition.Y, _fontSize, drawColor);
     }
 }
 
@@ -127,11 +130,11 @@ public class FloatingNumberManager
         _floatingNumbers.RemoveAll(n => n.IsExpired);
     }
     
-    public void Draw()
+    public void Draw(Vector2 cameraOffset = default)
     {
         foreach (var number in _floatingNumbers)
         {
-            number.Draw();
+            number.Draw(cameraOffset);
         }
     }
     

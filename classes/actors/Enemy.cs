@@ -38,15 +38,18 @@ public class Enemy
         // Basic update - override in derived classes for specific behavior
     }
     
-    public virtual void Draw()
+    public virtual void Draw(Vector2 cameraOffset = default)
     {
         if (!IsAlive) return;
         
+        // Apply camera offset to position
+        Vector2 screenPosition = _position + cameraOffset;
+        
         // Draw enemy circle
-        Raylib.DrawCircleV(_position, _radius, _color);
+        Raylib.DrawCircleV(screenPosition, _radius, _color);
         
         // Draw enemy outline
-        Raylib.DrawCircleLinesV(_position, _radius, Color.White);
+        Raylib.DrawCircleLinesV(screenPosition, _radius, Color.White);
     }
     
     public virtual void TakeDamage(int damage)

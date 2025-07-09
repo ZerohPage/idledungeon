@@ -58,6 +58,13 @@ public class GameScreen : Screen
         // Update combat system
         GameManager.Combat.Update(deltaTime);
         
+        // Update camera to follow player
+        if (GameManager.CurrentPlayer != null)
+        {
+            GameManager.Camera.SetTarget(GameManager.CurrentPlayer.Position);
+            GameManager.Camera.Update(deltaTime);
+        }
+        
         // Update floating numbers
         GameManager.FloatingNumbers.Update(deltaTime);
         
@@ -126,22 +133,25 @@ public class GameScreen : Screen
     {
         Raylib.ClearBackground(Color.Black);
         
+        // Get camera offset for world rendering
+        Vector2 cameraOffset = GameManager.Camera.Offset;
+        
         // Draw the dungeon if it exists
-        GameManager.CurrentDungeon?.Draw();
+        GameManager.CurrentDungeon?.Draw(cameraOffset);
         
         // Draw enemies
-        GameManager.DrawEnemies();
+        GameManager.DrawEnemies(cameraOffset);
         
         // Draw the player if it exists
-        GameManager.CurrentPlayer?.Draw();
+        GameManager.CurrentPlayer?.Draw(cameraOffset);
         
         // Draw combat UI if in combat
         GameManager.Combat.Draw();
         
         // Draw floating damage numbers
-        GameManager.FloatingNumbers.Draw();
+        GameManager.FloatingNumbers.Draw(cameraOffset);
         
-        // Draw UI
+        // Draw UI (no camera offset for UI elements)
         DrawGameUI();
 
         // Draw debug info if enabled
