@@ -46,6 +46,21 @@ public class BrokenSword : Item
         );
     }
 
+    public override bool OnPickup(Player player)
+    {
+        if (!CanPickup) return false;
+
+        // Try to add to player's inventory
+        if (player.Inventory.TryAddItem(this))
+        {
+            // Mark as invisible since it's been picked up
+            IsVisible = false;
+            return true;
+        }
+        
+        return false; // Inventory full
+    }
+
     public override bool OnUse(Player player)
     {
         // Broken sword could be used as a weak weapon or eventually repaired

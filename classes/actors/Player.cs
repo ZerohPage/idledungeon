@@ -40,7 +40,7 @@ public class Player
         _isMoving = false;
         _radius = 8.0f;
         _color = Color.Blue;
-        MaxHealth = 100;
+        MaxHealth = 200;
         Health = MaxHealth;
         _isAutoExploring = true;
         _autoMoveTimer = 0f;

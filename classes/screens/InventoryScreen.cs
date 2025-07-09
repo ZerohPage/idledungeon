@@ -14,6 +14,7 @@ public class InventoryScreen : Screen
     private Button _closeButton;
     private Button _useButton;
     private Button _dropButton;
+    private InfoBox? _itemDetailsBox;
     
     // Layout constants
     private const int SLOTS_PER_ROW = 5;
@@ -44,6 +45,20 @@ public class InventoryScreen : Screen
             new Vector2(80, 35),
             "Drop");
         _dropButton.OnClick += DropSelectedItem;
+
+        // Initialize item details box
+        _itemDetailsBox = new InfoBox(gameManager, Vector2.Zero, "")
+        {
+            FontSize = 14,
+            BackgroundColor = new Color(30, 30, 30, 240),
+            TextColor = Color.White,
+            Padding = new Vector2(12, 8),
+            EnableFade = false,
+            RoundedCorners = true,
+            CornerRadius = 6.0f,
+            OutlineColor = Color.White,
+            OutlineThickness = 2.0f
+        };
     }
 
     /// <summary>
@@ -73,6 +88,10 @@ public class InventoryScreen : Screen
         _useButton.Update(deltaTime);
         _dropButton.Update(deltaTime);
 
+        // Update item details box
+        UpdateItemDetailsBox();
+        _itemDetailsBox?.Update(deltaTime);
+
         // Update button states based on selection
         UpdateButtonStates();
     }
@@ -95,8 +114,8 @@ public class InventoryScreen : Screen
         // Draw inventory slots
         DrawInventorySlots();
 
-        // Draw item details for selected slot
-        DrawItemDetails();
+        // Draw item details using InfoBox
+        _itemDetailsBox?.Draw();
 
         // Draw buttons
         _closeButton.Draw();
@@ -199,29 +218,30 @@ public class InventoryScreen : Screen
         }
     }
 
-    private void DrawItemDetails()
+    private void UpdateItemDetailsBox()
     {
-        if (_inventory == null) return;
+        if (_inventory == null || _itemDetailsBox == null) return;
 
         var selectedItem = _inventory.GetItemAt(_selectedSlot);
-        if (selectedItem == null) return;
-
-        var (screenWidth, screenHeight) = GetScreenSize();
-        int detailsX = INVENTORY_START_X + (SLOTS_PER_ROW * (SLOT_SIZE + SLOT_SPACING)) + 50;
-        int detailsY = INVENTORY_START_Y;
-
-        // Draw details background
-        var detailsRect = new Rectangle(detailsX - 10, detailsY - 10, 300, 200);
-        Raylib.DrawRectangleRec(detailsRect, Color.Black);
-        Raylib.DrawRectangleLinesEx(detailsRect, 2, Color.White);
-
-        // Draw item details
-        string[] lines = selectedItem.GetTooltipText().Split('\n');
-        for (int i = 0; i < lines.Length; i++)
+        if (selectedItem == null)
         {
-            Color textColor = i == 0 ? selectedItem.RarityColor : Color.White;
-            FontManager.DrawText(lines[i], detailsX, detailsY + i * 20, 14, textColor, FontType.UI);
+            _itemDetailsBox.Visible = false;
+            return;
         }
+
+        // Update the InfoBox content
+        _itemDetailsBox.SetText(selectedItem.GetTooltipText());
+        
+        // Position the details box to the right of the inventory grid
+        var (screenWidth, screenHeight) = GetScreenSize();
+        int detailsX = INVENTORY_START_X + (SLOTS_PER_ROW * (SLOT_SIZE + SLOT_SPACING)) + 20;
+        int detailsY = INVENTORY_START_Y;
+        
+        _itemDetailsBox.Position = new Vector2(detailsX, detailsY);
+        _itemDetailsBox.Visible = true;
+
+        // Update text color based on item rarity for the first line (item name)
+        _itemDetailsBox.TextColor = Color.White; // Default color, we'll handle rarity coloring in a future enhancement
     }
 
     private void DrawInstructions()

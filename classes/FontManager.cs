@@ -17,7 +17,7 @@ public static class FontManager
     {
         try
         {
-            // Try to load custom fonts - use Sketch.ttf for all font types
+            // Try to load custom fonts - use Sketch.ttf for all font types at normal resolution
             _defaultFont = LoadFontSafe("assets/fonts/Sketch.ttf", 16);
             _titleFont = LoadFontSafe("assets/fonts/Sketch.ttf", 40);
             _uiFont = LoadFontSafe("assets/fonts/Sketch.ttf", 14);
@@ -37,12 +37,15 @@ public static class FontManager
         // Check if file exists before trying to load
         if (File.Exists(fileName))
         {
-            // Load font with higher resolution for better quality when scaling
-            int highResFontSize = fontSize * 2; // Load at 2x resolution for better quality
+            // Load font at higher resolution for better anti-aliasing when scaled
+            int highResFontSize = fontSize * 4; // Load at 4x resolution for smoother scaling
             var font = Raylib.LoadFontEx(fileName, highResFontSize, null, 0);
             
-            // Enable bilinear filtering for smooth scaling
-            Raylib.SetTextureFilter(font.Texture, TextureFilter.Bilinear);
+            // Enable trilinear filtering for best quality scaling
+            Raylib.SetTextureFilter(font.Texture, TextureFilter.Trilinear);
+            
+            // Generate mipmaps for the font texture for better scaling quality
+            Raylib.GenTextureMipmaps(ref font.Texture);
             
             return font;
         }
@@ -76,43 +79,48 @@ public static class FontManager
         
         if (_fontsLoaded && font.BaseSize != 0)
         {
-            // Calculate proper scale for high-resolution font
-            float scale = (float)fontSize / (font.BaseSize / 2f); // Divide by 2 because we loaded at 2x resolution
+            // Double the requested font size for better readability
+            int actualFontSize = fontSize * 2;
             
-            // Add slight spacing between characters for better readability
-            float spacing = fontSize * 0.05f; // 5% of font size
+            // Calculate proper scale from high-resolution font (loaded at 4x)
+            float scale = (float)actualFontSize / font.BaseSize;
+            
+            // Add slight spacing between characters for better readability (based on original fontSize)
+            float spacing = fontSize * 0.1f; // 10% of original font size for proper proportion
             
             // Draw black border by drawing text offset in 8 directions
             var position = new System.Numerics.Vector2(x, y);
             
             // Draw border (black text offset by 1 pixel in all directions)
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y - 1), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y - 1), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y - 1), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y + 1), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y + 1), fontSize, spacing, Color.Black);
-            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y + 1), fontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y - 1), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y - 1), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y - 1), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x - 1, y + 1), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x, y + 1), actualFontSize, spacing, Color.Black);
+            Raylib.DrawTextEx(font, text, new System.Numerics.Vector2(x + 1, y + 1), actualFontSize, spacing, Color.Black);
             
-            // Draw main text (white on top)
-            Raylib.DrawTextEx(font, text, position, fontSize, spacing, Color.White);
+            // Draw main text with high quality scaling
+            Raylib.DrawTextEx(font, text, position, actualFontSize, spacing, color);
         }
         else
         {
-            // Fall back to default Raylib text drawing with border
-            // Draw border (black text offset by 1 pixel in all directions)
-            Raylib.DrawText(text, x - 1, y - 1, fontSize, Color.Black);
-            Raylib.DrawText(text, x, y - 1, fontSize, Color.Black);
-            Raylib.DrawText(text, x + 1, y - 1, fontSize, Color.Black);
-            Raylib.DrawText(text, x - 1, y, fontSize, Color.Black);
-            Raylib.DrawText(text, x + 1, y, fontSize, Color.Black);
-            Raylib.DrawText(text, x - 1, y + 1, fontSize, Color.Black);
-            Raylib.DrawText(text, x, y + 1, fontSize, Color.Black);
-            Raylib.DrawText(text, x + 1, y + 1, fontSize, Color.Black);
+            // Fall back to default Raylib text drawing with border (doubled size)
+            int actualFontSize = fontSize * 2;
             
-            // Draw main text (white on top)
-            Raylib.DrawText(text, x, y, fontSize, Color.White);
+            // Draw border (black text offset by 1 pixel in all directions)
+            Raylib.DrawText(text, x - 1, y - 1, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x, y - 1, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x + 1, y - 1, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x - 1, y, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x + 1, y, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x - 1, y + 1, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x, y + 1, actualFontSize, Color.Black);
+            Raylib.DrawText(text, x + 1, y + 1, actualFontSize, Color.Black);
+            
+            // Draw main text
+            Raylib.DrawText(text, x, y, actualFontSize, color);
         }
     }
     
@@ -127,15 +135,18 @@ public static class FontManager
         
         if (_fontsLoaded && font.BaseSize != 0)
         {
-            // Add slight spacing between characters for better readability
-            float spacing = fontSize * 0.05f; // 5% of font size
-            var textSize = Raylib.MeasureTextEx(font, text, fontSize, spacing);
+            // Double the requested font size for better readability
+            int actualFontSize = fontSize * 2;
+            
+            // Add slight spacing between characters for better readability (based on original fontSize)
+            float spacing = fontSize * 0.1f; // 10% of original font size for proper proportion
+            var textSize = Raylib.MeasureTextEx(font, text, actualFontSize, spacing);
             return (int)textSize.X;
         }
         else
         {
-            // Fall back to default Raylib text measurement
-            return Raylib.MeasureText(text, fontSize);
+            // Fall back to default Raylib text measurement (doubled size)
+            return Raylib.MeasureText(text, fontSize * 2);
         }
     }
     
@@ -150,15 +161,18 @@ public static class FontManager
         
         if (_fontsLoaded && font.BaseSize != 0)
         {
-            // Add slight spacing between characters for better readability
-            float spacing = fontSize * 0.05f; // 5% of font size
-            return Raylib.MeasureTextEx(font, text, fontSize, spacing);
+            // Double the requested font size for better readability
+            int actualFontSize = fontSize * 2;
+            
+            // Add slight spacing between characters for better readability (based on original fontSize)
+            float spacing = fontSize * 0.1f; // 10% of original font size for proper proportion
+            return Raylib.MeasureTextEx(font, text, actualFontSize, spacing);
         }
         else
         {
-            // Fall back to default measurement
-            int width = Raylib.MeasureText(text, fontSize);
-            return new System.Numerics.Vector2(width, fontSize);
+            // Fall back to default measurement (doubled size)
+            int width = Raylib.MeasureText(text, fontSize * 2);
+            return new System.Numerics.Vector2(width, fontSize * 2);
         }
     }
 }
