@@ -63,8 +63,8 @@ public class GameManager
     
     public void StartNewGame()
     {
-        // Create a new dungeon
-        _dungeon = new Dungeon(60, 40);
+        // Create a new dungeon (doubled size for more exploration)
+        _dungeon = new Dungeon(120, 80);
         
         // Create player and set position to dungeon entrance
         _player = new Player(Vector2.Zero);

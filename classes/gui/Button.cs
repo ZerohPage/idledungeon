@@ -68,6 +68,82 @@ public class Button : Control
     }
 
     /// <summary>
+    /// Creates a small standardized button (120x40)
+    /// </summary>
+    /// <param name="gameManager">The game manager instance</param>
+    /// <param name="position">Position of the button</param>
+    /// <param name="text">Text to display on the button</param>
+    /// <returns>Configured small button</returns>
+    public static Button CreateSmallButton(GameManager gameManager, Vector2 position, string text)
+    {
+        return new Button(gameManager, position, new Vector2(120, 40), text)
+        {
+            FontSize = 12,
+            CornerRadius = 6.0f
+        };
+    }
+
+    /// <summary>
+    /// Creates a medium standardized button (160x50)
+    /// </summary>
+    /// <param name="gameManager">The game manager instance</param>
+    /// <param name="position">Position of the button</param>
+    /// <param name="text">Text to display on the button</param>
+    /// <returns>Configured medium button</returns>
+    public static Button CreateMediumButton(GameManager gameManager, Vector2 position, string text)
+    {
+        return new Button(gameManager, position, new Vector2(160, 50), text)
+        {
+            FontSize = 16,
+            CornerRadius = 8.0f
+        };
+    }
+
+    /// <summary>
+    /// Creates a large standardized button (200x60)
+    /// </summary>
+    /// <param name="gameManager">The game manager instance</param>
+    /// <param name="position">Position of the button</param>
+    /// <param name="text">Text to display on the button</param>
+    /// <returns>Configured large button</returns>
+    public static Button CreateBigButton(GameManager gameManager, Vector2 position, string text)
+    {
+        return new Button(gameManager, position, new Vector2(200, 60), text)
+        {
+            FontSize = 20,
+            CornerRadius = 10.0f
+        };
+    }
+
+    /// <summary>
+    /// Automatically adjusts the font size to fit the text within the button
+    /// </summary>
+    /// <param name="padding">Padding to leave around the text (default: 10px)</param>
+    public void AutoFitText(int padding = 10)
+    {
+        if (string.IsNullOrEmpty(Text)) return;
+
+        int maxWidth = (int)Size.X - (padding * 2);
+        int maxHeight = (int)Size.Y - (padding * 2);
+
+        // Start with current font size and adjust down if needed
+        int testFontSize = FontSize;
+        Vector2 textSize;
+
+        do
+        {
+            textSize = FontManager.MeasureTextEx(Text, testFontSize, FontType);
+            if (textSize.X <= maxWidth && textSize.Y <= maxHeight)
+            {
+                break;
+            }
+            testFontSize--;
+        } while (testFontSize > 8); // Minimum font size of 8
+
+        FontSize = Math.Max(testFontSize, 8);
+    }
+
+    /// <summary>
     /// Updates the button's state and handles input
     /// </summary>
     /// <param name="deltaTime">Time elapsed since last update</param>

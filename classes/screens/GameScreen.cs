@@ -154,8 +154,6 @@ public class GameScreen : Screen
     private void DrawGameUI()
     {
         FontManager.DrawText("Dungeon Game", 10, 10, 20, Color.White, FontType.UI);
-        FontManager.DrawText("Use WASD to move, ESC to pause, I for inventory, R for debug", 10, 35, 16, Color.LightGray, FontType.UI);
-        FontManager.DrawText("Auto-healing at 25% health", 10, 55, 14, Color.Green, FontType.UI);
         
         // Draw player health bar
         if (GameManager.CurrentPlayer != null)
