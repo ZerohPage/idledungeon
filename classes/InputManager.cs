@@ -19,6 +19,10 @@ public static class InputManager
     public static bool IsDebugTogglePressed { get; private set; }
     public static bool IsPausePressed { get; private set; }
     
+    // Exploration speed controls
+    public static bool IsSpeedUpPressed { get; private set; }
+    public static bool IsSpeedDownPressed { get; private set; }
+    
     // Menu/UI navigation
     public static bool IsMenuConfirmPressed { get; private set; }
     public static bool IsMenuCancelPressed { get; private set; }
@@ -72,6 +76,12 @@ public static class InputManager
         IsInventoryTogglePressed = Raylib.IsKeyPressed(KeyboardKey.I);
         IsDebugTogglePressed = Raylib.IsKeyPressed(KeyboardKey.F3); // Changed from R to F3 to avoid conflict
         IsPausePressed = Raylib.IsKeyPressed(KeyboardKey.Escape);
+        
+        // Speed controls - support both regular and keypad plus/minus
+        IsSpeedUpPressed = Raylib.IsKeyPressed(KeyboardKey.Equal) ||      // + key (shift + =)
+                          Raylib.IsKeyPressed(KeyboardKey.KpAdd);          // Keypad +
+        IsSpeedDownPressed = Raylib.IsKeyPressed(KeyboardKey.Minus) ||    // - key  
+                            Raylib.IsKeyPressed(KeyboardKey.KpSubtract);   // Keypad -
     }
     
     private static void UpdateMenuInput()
@@ -167,5 +177,7 @@ public static class InputManager
         InventoryNavigation = Vector2.Zero;
         IsInventoryUsePressed = false;
         IsInventoryClosePressed = false;
+        IsSpeedUpPressed = false;
+        IsSpeedDownPressed = false;
     }
 }

@@ -8,7 +8,7 @@ public class Player
     private Vector2 _gridPosition; // Grid coordinates
     private Vector2 _worldPosition; // Pixel coordinates for drawing
     private float _moveTimer; // Timer for smooth movement animation
-    private float _moveDuration = 0.01f; // Time to move between grid cells (150% faster for testing)
+    private float _moveDuration = 0.2f; // Time to move between grid cells (smooth movement)
     private Vector2 _moveStartPos; // Starting position for smooth movement
     private Vector2 _moveEndPos; // Ending position for smooth movement
     private bool _isMoving;
@@ -17,9 +17,15 @@ public class Player
     private Dungeon? _currentDungeon;
     private bool _isAutoExploring;
     private float _autoMoveTimer;
-    private float _autoMoveCooldown = 0.01f; // Time between auto moves (150% faster for testing)
+    private float _autoMoveCooldown; // Time between auto moves - now dynamic
     private AutoExplorer _autoExplorer;
     private bool _showReachablePositions = false; // Toggle for visualization
+    
+    // Speed control settings
+    private float _baseAutoMoveCooldown = 0.25f; // Base speed
+    private float _minAutoMoveCooldown = 0.01f;  // Fastest speed (20 moves per second)
+    private float _maxAutoMoveCooldown = 2.0f;   // Slowest speed (0.5 moves per second)
+    private float _speedStep = 0.05f;            // How much to change speed per key press
     
     public Vector2 Position => _worldPosition;
     public Vector2 GridPosition => _gridPosition;
@@ -27,6 +33,7 @@ public class Player
     public int Health { get; private set; }
     public int MaxHealth { get; private set; }
     public bool IsAutoExploring { get => _isAutoExploring; set => _isAutoExploring = value; }
+    public float ExplorationSpeed => 1.0f / _autoMoveCooldown; // Moves per second
     public InventoryManager Inventory { get; private set; }
     
     public Player(Vector2 startPosition)
@@ -44,6 +51,7 @@ public class Player
         Health = MaxHealth;
         _isAutoExploring = true;
         _autoMoveTimer = 0f;
+        _autoMoveCooldown = _baseAutoMoveCooldown; // Initialize with base speed
         _autoExplorer = new AutoExplorer();
         Inventory = new InventoryManager(20); // 20 slot inventory
     }
@@ -78,6 +86,9 @@ public class Player
         {
             _showReachablePositions = !_showReachablePositions;
         }
+        
+        // Handle exploration speed controls
+        HandleSpeedControls();
 
         // Handle smooth movement animation
         UpdateMovementAnimation(deltaTime);
@@ -324,5 +335,20 @@ public class Player
     public Vector2 GetTilePosition()
     {
         return _gridPosition;
+    }
+
+    private void HandleSpeedControls()
+    {
+        if (InputManager.IsSpeedUpPressed)
+        {
+            // Decrease cooldown to speed up (clamp to minimum)
+            _autoMoveCooldown = Math.Max(_minAutoMoveCooldown, _autoMoveCooldown - _speedStep);
+        }
+        
+        if (InputManager.IsSpeedDownPressed)
+        {
+            // Increase cooldown to slow down (clamp to maximum)  
+            _autoMoveCooldown = Math.Min(_maxAutoMoveCooldown, _autoMoveCooldown + _speedStep);
+        }
     }
 }

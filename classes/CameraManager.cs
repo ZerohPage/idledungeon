@@ -14,6 +14,7 @@ public static class CameraManager
     private static Vector2 _dungeonBounds;
     private static bool _enableBoundaryClamp = true;
     private static bool _initialized = false;
+    private static float _defaultZoom = 2.0f; // Default zoom level for closer view of player
     
     public static Camera2D Camera => _camera;
     public static Vector2 Position => _camera.Target;
@@ -22,6 +23,15 @@ public static class CameraManager
     { 
         get => _smoothing; 
         set => _smoothing = Math.Max(0.1f, value); // Minimum smoothing to prevent issues
+    }
+    
+    /// <summary>
+    /// Gets or sets the camera zoom level
+    /// </summary>
+    public static float Zoom
+    {
+        get => _camera.Zoom;
+        set => _camera.Zoom = Math.Max(0.1f, Math.Min(10.0f, value)); // Clamp between 0.1x and 10x
     }
     
     /// <summary>
@@ -36,7 +46,7 @@ public static class CameraManager
             Target = Vector2.Zero,
             Offset = new Vector2(Raylib.GetScreenWidth() / 2.0f, Raylib.GetScreenHeight() / 2.0f),
             Rotation = 0.0f,
-            Zoom = 1.0f
+            Zoom = _defaultZoom
         };
         
         _target = Vector2.Zero;
@@ -70,6 +80,45 @@ public static class CameraManager
     public static void SetBoundaryClamp(bool enabled)
     {
         _enableBoundaryClamp = enabled;
+    }
+    
+    /// <summary>
+    /// Sets the camera zoom to a specific level
+    /// </summary>
+    /// <param name="zoomLevel">The zoom level (1.0 = normal, 2.0 = 2x zoom, etc.)</param>
+    public static void SetZoom(float zoomLevel)
+    {
+        if (!_initialized) Initialize();
+        Zoom = zoomLevel;
+    }
+    
+    /// <summary>
+    /// Zooms the camera in by a specified factor
+    /// </summary>
+    /// <param name="factor">Amount to zoom in (default 0.1)</param>
+    public static void ZoomIn(float factor = 0.1f)
+    {
+        if (!_initialized) Initialize();
+        Zoom += factor;
+    }
+    
+    /// <summary>
+    /// Zooms the camera out by a specified factor
+    /// </summary>
+    /// <param name="factor">Amount to zoom out (default 0.1)</param>
+    public static void ZoomOut(float factor = 0.1f)
+    {
+        if (!_initialized) Initialize();
+        Zoom -= factor;
+    }
+    
+    /// <summary>
+    /// Resets the camera zoom to the default level
+    /// </summary>
+    public static void ResetZoom()
+    {
+        if (!_initialized) Initialize();
+        Zoom = _defaultZoom;
     }
     
     /// <summary>
@@ -167,21 +216,26 @@ public static class CameraManager
     
     private static void ClampToBounds()
     {
-        float halfScreenWidth = _camera.Offset.X;
-        float halfScreenHeight = _camera.Offset.Y;
+        // Account for zoom level in boundary calculations
+        float zoomFactor = _camera.Zoom;
+        float halfScreenWidth = _camera.Offset.X / zoomFactor;
+        float halfScreenHeight = _camera.Offset.Y / zoomFactor;
         
         // Clamp camera target to keep the view within dungeon bounds
         var target = _camera.Target;
         target.X = Math.Max(halfScreenWidth, Math.Min(_dungeonBounds.X - halfScreenWidth, target.X));
         target.Y = Math.Max(halfScreenHeight, Math.Min(_dungeonBounds.Y - halfScreenHeight, target.Y));
         
-        // Handle cases where dungeon is smaller than screen
-        if (_dungeonBounds.X < Raylib.GetScreenWidth())
+        // Handle cases where dungeon is smaller than visible screen area (accounting for zoom)
+        float visibleWidth = Raylib.GetScreenWidth() / zoomFactor;
+        float visibleHeight = Raylib.GetScreenHeight() / zoomFactor;
+        
+        if (_dungeonBounds.X < visibleWidth)
         {
             target.X = _dungeonBounds.X / 2.0f;
         }
         
-        if (_dungeonBounds.Y < Raylib.GetScreenHeight())
+        if (_dungeonBounds.Y < visibleHeight)
         {
             target.Y = _dungeonBounds.Y / 2.0f;
         }
