@@ -34,6 +34,7 @@ public class Player
     public int MaxHealth { get; private set; }
     public bool IsAutoExploring { get => _isAutoExploring; set => _isAutoExploring = value; }
     public float ExplorationSpeed => 1.0f / _autoMoveCooldown; // Moves per second
+    public Vector2 CurrentDirection => _autoExplorer.CurrentDirection;
     public InventoryManager Inventory { get; private set; }
     
     public Player(Vector2 startPosition)

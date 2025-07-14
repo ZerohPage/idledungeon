@@ -17,6 +17,7 @@ public static class InputManager
     public static bool IsReachablePositionsTogglePressed { get; private set; }
     public static bool IsInventoryTogglePressed { get; private set; }
     public static bool IsDebugTogglePressed { get; private set; }
+    public static bool IsRaycastTogglePressed { get; private set; }
     public static bool IsPausePressed { get; private set; }
     
     // Exploration speed controls
@@ -75,6 +76,7 @@ public static class InputManager
         IsReachablePositionsTogglePressed = Raylib.IsKeyPressed(KeyboardKey.R);
         IsInventoryTogglePressed = Raylib.IsKeyPressed(KeyboardKey.I);
         IsDebugTogglePressed = Raylib.IsKeyPressed(KeyboardKey.F3); // Changed from R to F3 to avoid conflict
+        IsRaycastTogglePressed = Raylib.IsKeyPressed(KeyboardKey.F2); // F2 to toggle 3D view
         IsPausePressed = Raylib.IsKeyPressed(KeyboardKey.Escape);
         
         // Speed controls - support both regular and keypad plus/minus
@@ -171,6 +173,7 @@ public static class InputManager
         IsReachablePositionsTogglePressed = false;
         IsInventoryTogglePressed = false;
         IsDebugTogglePressed = false;
+        IsRaycastTogglePressed = false;
         IsPausePressed = false;
         IsMenuConfirmPressed = false;
         IsMenuCancelPressed = false;

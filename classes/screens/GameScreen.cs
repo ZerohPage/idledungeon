@@ -11,6 +11,7 @@ namespace RaylibGame.Classes;
 public class GameScreen : Screen
 {
     private Button _inventoryButton;
+    private RaycastRenderer _raycastRenderer;
     private float _autoHealCooldown = 0f;
     private const float AUTO_HEAL_COOLDOWN_TIME = 2.0f; // 2 seconds between auto-heals
 
@@ -23,6 +24,13 @@ public class GameScreen : Screen
             new Vector2(100, 30),
             "Inventory");
         _inventoryButton.OnClick += ToggleInventory;
+        
+        // Create raycast renderer for 3D view
+        _raycastRenderer = new RaycastRenderer();
+        if (gameManager.CurrentDungeon != null)
+        {
+            _raycastRenderer.SetDungeon(gameManager.CurrentDungeon);
+        }
     }
 
     public override void Update(float deltaTime)
@@ -37,6 +45,12 @@ public class GameScreen : Screen
         if (InputManager.IsDebugTogglePressed)
         {
             GameManager.Debug.ToggleDebug();
+        }
+        
+        // Handle raycast 3D view toggle
+        if (InputManager.IsRaycastTogglePressed)
+        {
+            _raycastRenderer.ToggleVisibility();
         }
 
         // Update inventory button
@@ -63,6 +77,24 @@ public class GameScreen : Screen
         {
             CameraManager.SetTarget(GameManager.CurrentPlayer.Position);
             CameraManager.Update(deltaTime);
+            
+            // Update raycast renderer with player position and direction
+            if (GameManager.CurrentDungeon != null)
+            {
+                // Make sure the raycast renderer has the current dungeon
+                _raycastRenderer.SetDungeon(GameManager.CurrentDungeon);
+                
+                // Get player direction (from auto explorer or default)
+                Vector2 playerDirection = Vector2.UnitX; // Default facing right
+                if (GameManager.CurrentPlayer.IsAutoExploring)
+                {
+                    // Get the current exploration direction or use a default
+                    playerDirection = GetPlayerViewDirection();
+                }
+                
+                // Render the 3D view
+                _raycastRenderer.Render(GameManager.CurrentPlayer.GridPosition, playerDirection);
+            }
         }
         
         // Update floating numbers
@@ -156,6 +188,9 @@ public class GameScreen : Screen
 
         // Draw inventory button (screen space)
         _inventoryButton.Draw();
+        
+        // Draw 3D raycast view (screen space overlay)
+        _raycastRenderer.Draw();
     }
 
     private void DrawGameUI()
@@ -206,5 +241,30 @@ public class GameScreen : Screen
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the direction the player is currently facing/moving
+    /// </summary>
+    private Vector2 GetPlayerViewDirection()
+    {
+        if (GameManager.CurrentPlayer == null) return Vector2.UnitX;
+        
+        // Get direction from auto explorer if available
+        Vector2 direction = GameManager.CurrentPlayer.CurrentDirection;
+        
+        // If no direction (standing still), default to facing right
+        if (direction == Vector2.Zero)
+            return Vector2.UnitX;
+            
+        return direction;
+    }
+
+    /// <summary>
+    /// Cleanup resources
+    /// </summary>
+    public void Cleanup()
+    {
+        _raycastRenderer?.Dispose();
     }
 }
