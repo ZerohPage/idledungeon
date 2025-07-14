@@ -13,7 +13,7 @@ public class RaycastRenderer
     private const int RENDER_HEIGHT = 300;
     private const int NUM_RAYS = 150; // Number of rays to cast (half of width for performance)
     private const float FOV = 60.0f; // Field of view in degrees
-    private const float MAX_DISTANCE = 5.0f; // Maximum ray distance in grid units (3 squares ahead)
+    private const float MAX_DISTANCE = 5.0f; // Maximum ray distance in grid units (5 squares ahead)
     
     private RenderTexture2D _renderTexture;
     private Vector2 _position;
@@ -23,6 +23,11 @@ public class RaycastRenderer
     // Debug info
     private Vector2 _lastPlayerPos;
     private Vector2 _lastPlayerDir;
+    
+    // Fog effect properties
+    private float _fogAnimationTime;
+    private const float FOG_START_DISTANCE = MAX_DISTANCE; // Start fog effect exactly at max distance
+    private readonly Random _fogRandom = new Random();
     
     // Colors for different wall distances (darker = further)
     private readonly Color[] _wallColors = new Color[]
@@ -66,6 +71,14 @@ public class RaycastRenderer
     public void SetDungeon(Dungeon dungeon)
     {
         _dungeon = dungeon;
+    }
+    
+    /// <summary>
+    /// Updates the fog animation (call this every frame)
+    /// </summary>
+    public void UpdateFogAnimation(float deltaTime)
+    {
+        _fogAnimationTime += deltaTime * 2.0f; // Speed up the animation
     }
     
     /// <summary>
@@ -121,7 +134,21 @@ public class RaycastRenderer
                 int drawX = x * pixelWidth + px;
                 if (drawX < RENDER_WIDTH)
                 {
-                    Raylib.DrawLine(drawX, (int)wallTop, drawX, (int)wallBottom, wallColor);
+                    // If we hit the max distance (no wall found), draw fog instead of a wall
+                    if (hitDistance >= MAX_DISTANCE)
+                    {
+                        Color fogColor = GetFogColor(correctedDistance, drawX, 0);
+                        if (fogColor.A > 0)
+                        {
+                            // Draw fog over the entire column height for areas we can't see
+                            Raylib.DrawLine(drawX, 0, drawX, RENDER_HEIGHT, fogColor);
+                        }
+                    }
+                    else
+                    {
+                        // Draw the wall normally
+                        Raylib.DrawLine(drawX, (int)wallTop, drawX, (int)wallBottom, wallColor);
+                    }
                 }
             }
         }
@@ -228,5 +255,27 @@ public class RaycastRenderer
     public void Dispose()
     {
         Raylib.UnloadRenderTexture(_renderTexture);
+    }
+    
+    /// <summary>
+    /// Generates a shimmering fog color for areas beyond the view limit
+    /// </summary>
+    private Color GetFogColor(float distance, int x, int y)
+    {
+        // Only show fog for areas at the maximum view distance (unseen areas)
+        if (distance < MAX_DISTANCE) return Color.Blank;
+        
+        // Create shimmer effect using sine waves with different frequencies
+        float shimmer1 = (float)Math.Sin(_fogAnimationTime * 2.0f + x * 0.05f) * 0.5f + 0.5f;
+        float shimmer2 = (float)Math.Sin(_fogAnimationTime * 1.5f + x * 0.03f) * 0.5f + 0.5f;
+        
+        // Combine shimmers for subtle movement
+        float combinedShimmer = (shimmer1 + shimmer2) / 2.0f;
+        
+        // Create a subtle fog intensity for the unseen areas
+        int baseGray = 25 + (int)(combinedShimmer * 15); // Gray value between 25-40
+        int alpha = (int)(80 + combinedShimmer * 30); // Alpha between 80-110
+        
+        return new Color(baseGray, baseGray + 3, baseGray + 6, alpha); // Slightly bluish tint
     }
 }

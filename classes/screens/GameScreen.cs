@@ -97,6 +97,9 @@ public class GameScreen : Screen
             }
         }
         
+        // Update raycast renderer fog animation
+        _raycastRenderer.UpdateFogAnimation(deltaTime);
+        
         // Update floating numbers
         GameManager.FloatingNumbers.Update(deltaTime);
         
