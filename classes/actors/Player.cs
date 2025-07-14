@@ -131,6 +131,9 @@ public class Player
     {
         if (_currentDungeon == null) return;
         
+        // Update smooth rotation for the auto explorer
+        _autoExplorer.UpdateRotation(deltaTime);
+        
         // Check if exploration is complete and turn off auto-exploration
         if (_autoExplorer.GetExplorationProgress() >= 100)
         {

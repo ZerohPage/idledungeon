@@ -10,6 +10,11 @@ public class AutoExplorer
     private bool _needsNewDirection;
     private Random _random;
     
+    // Smooth rotation properties
+    private float _currentFacingAngle = 0.0f; // Current facing angle in radians
+    private float _targetFacingAngle = 0.0f;  // Target angle to rotate towards
+    private float _rotationSpeed = 8.0f;     // How fast to rotate (radians per second)
+    
     private HashSet<Vector2> _visitedPositions;
     private HashSet<Vector2> _reachablePositions;
     private bool _inHuntMode;
@@ -23,7 +28,7 @@ public class AutoExplorer
     private int _maxHuntAttempts = 3;
     private bool _explorationComplete = false;
     
-    public Vector2 CurrentDirection => _currentDirection;
+    public Vector2 CurrentDirection => GetCurrentFacingDirection();
     
     public AutoExplorer()
     {
@@ -38,6 +43,8 @@ public class AutoExplorer
     public void Reset()
     {
         _currentDirection = Vector2.Zero;
+        _currentFacingAngle = 0.0f;
+        _targetFacingAngle = 0.0f;
         _stepsInDirection = 0;
         _needsNewDirection = true;
         _visitedPositions.Clear();
@@ -142,6 +149,7 @@ public class AutoExplorer
                             _huntAttempts = 0;
                             _needsNewDirection = true;
                         }
+                        SetTargetDirection(direction);
                         return direction;
                     }
                     else
@@ -163,7 +171,8 @@ public class AutoExplorer
         {
             if (_needsNewDirection || _stepsInDirection >= _maxStepsInDirection)
             {
-                _currentDirection = ChooseRandomDirection(currentGridPosition, dungeon);
+                Vector2 newDirection = ChooseRandomDirection(currentGridPosition, dungeon);
+                SetTargetDirection(newDirection);
                 _stepsInDirection = 0;
                 _needsNewDirection = false;
             }
@@ -173,6 +182,7 @@ public class AutoExplorer
                 Vector2 nextPos = currentGridPosition + _currentDirection;
                 if (IsValidGridPosition(nextPos, dungeon) && dungeon.IsWalkable((int)nextPos.X, (int)nextPos.Y))
                 {
+                    SetTargetDirection(_currentDirection);
                     return _currentDirection;
                 }
                 else
@@ -498,5 +508,66 @@ public class AutoExplorer
         }
         
         return new List<Vector2>(); // No path found
+    }
+
+    /// <summary>
+    /// Updates the smooth rotation towards the target angle
+    /// </summary>
+    public void UpdateRotation(float deltaTime)
+    {
+        // Smoothly interpolate current angle towards target angle
+        float angleDifference = NormalizeAngle(_targetFacingAngle - _currentFacingAngle);
+        
+        // If we're close enough, snap to target
+        if (Math.Abs(angleDifference) < 0.1f)
+        {
+            _currentFacingAngle = _targetFacingAngle;
+        }
+        else
+        {
+            // Rotate towards target at rotation speed
+            float rotationStep = _rotationSpeed * deltaTime;
+            if (angleDifference > 0)
+            {
+                _currentFacingAngle += Math.Min(rotationStep, angleDifference);
+            }
+            else
+            {
+                _currentFacingAngle -= Math.Min(rotationStep, -angleDifference);
+            }
+        }
+        
+        // Keep angle in valid range
+        _currentFacingAngle = NormalizeAngle(_currentFacingAngle);
+    }
+    
+    /// <summary>
+    /// Gets the current facing direction as a normalized vector
+    /// </summary>
+    private Vector2 GetCurrentFacingDirection()
+    {
+        return new Vector2((float)Math.Cos(_currentFacingAngle), (float)Math.Sin(_currentFacingAngle));
+    }
+    
+    /// <summary>
+    /// Sets the target direction and updates the target angle for smooth rotation
+    /// </summary>
+    private void SetTargetDirection(Vector2 direction)
+    {
+        if (direction != Vector2.Zero)
+        {
+            _currentDirection = direction;
+            _targetFacingAngle = (float)Math.Atan2(direction.Y, direction.X);
+        }
+    }
+    
+    /// <summary>
+    /// Normalizes an angle to be between -PI and PI
+    /// </summary>
+    private float NormalizeAngle(float angle)
+    {
+        while (angle > Math.PI) angle -= 2.0f * (float)Math.PI;
+        while (angle < -Math.PI) angle += 2.0f * (float)Math.PI;
+        return angle;
     }
 }
